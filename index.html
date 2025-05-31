@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rifa MISAGA Digital Solutions</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="logo.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rifa MISAGA</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="MISAGA Digital Solutions" class="logo">
-    <h1>Rifa para mi Moto</h1>
-    <p>Selecciona un número disponible del 1 al 100</p>
+    MISAGA Digital Solutions - Rifa Interactiva
   </header>
+  <div class="container">
+    <div class="numbers" id="numeros-container">
+      <!-- Números generados por JS -->
+    </div>
+    <div class="formulario">
+      <h2>Formulario de Participación</h2>
+      <form id="form-rifa">
+        <label for="numero">Número seleccionado:</label>
+        <input type="text" id="numero" name="numero" readonly required>
 
-  <main class="container">
-    <div id="numeros-container" class="numeros"></div>
+        <label for="nombre">Nombre completo:</label>
+        <input type="text" id="nombre" name="nombre" required>
 
-    <div id="formulario" class="formulario">
-      <h2>Formulario de Compra</h2>
-      <form id="compra-form">
-        <label>Número seleccionado:</label>
-        <input type="text" id="numero-seleccionado" readonly><br>
-        <input type="text" id="nombre" placeholder="Nombre completo" required><br>
-        <input type="text" id="telefono" placeholder="Número de contacto" required><br>
+        <label for="telefono">Teléfono:</label>
+        <input type="text" id="telefono" name="telefono" required>
+
         <button type="submit">Reservar número</button>
       </form>
     </div>
-  </main>
-
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
