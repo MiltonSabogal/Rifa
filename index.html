@@ -2,24 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Rifa Solidaria</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rifa MISAGA Digital Solutions</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="logo.png">
 </head>
 <body>
-  <h1>Rifa para mi Moto</h1>
-  <p>Selecciona un número del 1 al 100</p>
+  <header>
+    <img src="logo.png" alt="MISAGA Digital Solutions" class="logo">
+    <h1>Rifa para mi Moto</h1>
+    <p>Selecciona un número disponible del 1 al 100</p>
+  </header>
 
-  <div id="numeros-container"></div>
+  <main class="container">
+    <div id="numeros-container" class="numeros"></div>
 
-  <div id="formulario" style="display: none;">
-    <h2>Formulario de Compra</h2>
-    <form id="compra-form">
-      <input type="text" id="nombre" placeholder="Nombre completo" required><br>
-      <input type="text" id="telefono" placeholder="Número de contacto" required><br>
-      <input type="hidden" id="numero-seleccionado">
-      <button type="submit">Reservar número</button>
-    </form>
-  </div>
+    <div id="formulario" class="formulario">
+      <h2>Formulario de Compra</h2>
+      <form id="compra-form">
+        <label>Número seleccionado:</label>
+        <input type="text" id="numero-seleccionado" readonly><br>
+        <input type="text" id="nombre" placeholder="Nombre completo" required><br>
+        <input type="text" id="telefono" placeholder="Número de contacto" required><br>
+        <button type="submit">Reservar número</button>
+      </form>
+    </div>
+  </main>
 
   <script src="script.js"></script>
 </body>
