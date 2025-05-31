@@ -2,26 +2,24 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rifa Solidaria</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Rifa Solidaria para mi Moto</h1>
-  <p>Escoge un número y completa tus datos para participar.</p>
+  <h1>Rifa para mi Moto</h1>
+  <p>Selecciona un número del 1 al 100</p>
 
-  <form id="formulario">
-    <label for="numero">Número que deseas (1 al 100):</label><br>
-    <input type="number" id="numero" name="numero" min="1" max="100" required><br><br>
+  <div id="numeros-container"></div>
 
-    <label for="nombre">Tu nombre completo:</label><br>
-    <input type="text" id="nombre" name="nombre" required><br><br>
-
-    <label for="telefono">Tu número de celular:</label><br>
-    <input type="tel" id="telefono" name="telefono" required><br><br>
-
-    <button type="submit">Reservar número</button>
-  </form>
+  <div id="formulario" style="display: none;">
+    <h2>Formulario de Compra</h2>
+    <form id="compra-form">
+      <input type="text" id="nombre" placeholder="Nombre completo" required><br>
+      <input type="text" id="telefono" placeholder="Número de contacto" required><br>
+      <input type="hidden" id="numero-seleccionado">
+      <button type="submit">Reservar número</button>
+    </form>
+  </div>
 
   <script src="script.js"></script>
 </body>
