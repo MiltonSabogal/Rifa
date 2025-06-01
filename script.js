@@ -1,114 +1,169 @@
-// script.js
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
+  authDomain: "rifa-misaga.firebaseapp.com",
+  databaseURL: "https://rifa-misaga-default-rtdb.firebaseio.com",
+  projectId: "rifa-misaga",
+  storageBucket: "rifa-misaga.firebasestorage.app",
+  messagingSenderId: "495411826218",
+  appId: "1:495411826218:web:5fb2d24364b496d0cfbd53",
+  measurementId: "G-CNPG01QT6H"
+};
 
-document.addEventListener("DOMContentLoaded", () => {
-  const numerosContainer = document.getElementById("numeros-container");
-  const form = document.getElementById("form-rifa");
-  const numeroInput = document.getElementById("numero");
-  const nombreInput = document.getElementById("nombre");
-  const telefonoInput = document.getElementById("telefono");
-  const totalPago = document.getElementById("total-pago");
-  const submitBtn = document.getElementById("submit-btn");
-  const notification = document.getElementById("notification");
+// Inicializar Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  const valorPorNumero = 20000;
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('numeros-container');
+  const inputNumero = document.getElementById('numero');
+  const totalPago = document.getElementById('total-pago');
+  const notification = document.getElementById('notification');
+  const form = document.getElementById('form-rifa');
+  const spinner = document.getElementById('spinner');
+  const submitSpinner = document.getElementById('submit-spinner');
+  const submitBtn = document.getElementById('submit-btn');
 
-  let numeroSeleccionado = null;
-  const numerosTotales = 100;
+  let selectedNumbers = [];
+  spinner.style.display = 'block';
 
-  const mostrarNotificacion = (mensaje, tipo = "success") => {
-    notification.textContent = mensaje;
-    notification.className = `notification show ${tipo}`;
-    setTimeout(() => {
-      notification.classList.remove("show");
-    }, 4000);
-  };
+  // Función para mostrar notificaciones
+  function showNotification(message, isSuccess) {
+    notification.textContent = message;
+    notification.className = isSuccess ? 'notification success show' : 'notification error show';
+    setTimeout(() => notification.classList.remove('show'), 4000);
+  }
 
-  const cargarNumeros = async () => {
-    for (let i = 0; i < numerosTotales; i++) {
-      const num = i.toString().padStart(2, "0");
-      const numeroDiv = document.createElement("div");
-      numeroDiv.classList.add("number");
-      numeroDiv.textContent = num;
-      numeroDiv.dataset.numero = num;
+  // Validaciones
+  const validatePhone = phone => /^[0-9]{10,15}$/.test(phone);
+  const validateName = name => name.trim().length >= 5;
 
-      // Revisar si el número ya fue reservado en Firebase
-      try {
-        const doc = await db.collection("rifa").doc(num).get();
-        if (doc.exists) {
-          numeroDiv.classList.add("ocupado");
+  // Cargar los números ocupados desde Firestore
+  db.collection('rifa').get().then(snapshot => {
+    const numerosOcupados = snapshot.docs.map(doc => doc.data().numero);
+    
+    // Generar todos los números del 00 al 99
+    for (let i = 0; i < 100; i++) {
+      const num = i.toString().padStart(2, '0');
+      const div = document.createElement('div');
+      div.classList.add('number');
+      div.innerText = num;
+      div.dataset.num = num;
+
+      // Marcar como ocupado si está en la lista
+      if (numerosOcupados.includes(num)) {
+        div.classList.add('ocupado');
+        div.style.pointerEvents = 'none';
+      }
+
+      // Evento click para seleccionar/deseleccionar
+      div.addEventListener('click', () => {
+        if (div.classList.contains('ocupado')) return;
+
+        if (selectedNumbers.includes(num)) {
+          // Deseleccionar
+          selectedNumbers = selectedNumbers.filter(n => n !== num);
+          div.classList.remove('selected');
         } else {
-          numeroDiv.addEventListener("click", () => seleccionarNumero(num, numeroDiv));
+          // Seleccionar
+          selectedNumbers.push(num);
+          div.classList.add('selected');
         }
-      } catch (error) {
-        console.error("Error al cargar número:", error);
-      }
 
-      numerosContainer.appendChild(numeroDiv);
-    }
-  };
+        // Actualizar input y total
+        inputNumero.value = selectedNumbers.join(', ');
+        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 20000).toLocaleString('es-CO')}`;
+      });
 
-  const seleccionarNumero = (num, div) => {
-    if (numeroSeleccionado) {
-      document.querySelector(`[data-numero="${numeroSeleccionado}"]`).classList.remove("selected");
+      container.appendChild(div);
     }
 
-    numeroSeleccionado = num;
-    numeroInput.value = num;
-    div.classList.add("selected");
-    totalPago.textContent = `Total a pagar: $${valorPorNumero.toLocaleString()}`;
-  };
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    if (!numeroSeleccionado) {
-      mostrarNotificacion("Por favor selecciona un número.", "error");
-      return;
-    }
-
-    const nombre = nombreInput.value.trim();
-    const telefono = telefonoInput.value.trim();
-
-    if (!nombre || !telefono) {
-      mostrarNotificacion("Debes completar todos los campos.", "error");
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Reservando...";
-
-    try {
-      const docRef = db.collection("rifa").doc(numeroSeleccionado);
-      const docSnap = await docRef.get();
-
-      if (docSnap.exists) {
-        mostrarNotificacion("Ese número ya fue reservado.", "error");
-      } else {
-        await docRef.set({
-          numero: numeroSeleccionado,
-          nombre,
-          telefono,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        mostrarNotificacion("¡Número reservado con éxito!", "success");
-        document.querySelector(`[data-numero="${numeroSeleccionado}"]`).classList.add("ocupado");
-        document.querySelector(`[data-numero="${numeroSeleccionado}"]`).classList.remove("selected");
-
-        // Reset form
-        form.reset();
-        totalPago.textContent = "Total a pagar: $0";
-        numeroSeleccionado = null;
-      }
-    } catch (error) {
-      console.error("Error al guardar en Firestore:", error);
-      mostrarNotificacion("Ocurrió un error al reservar el número.", "error");
-    }
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Reservar número";
+    spinner.style.display = 'none';
+  }).catch(error => {
+    console.error('Error al cargar números:', error);
+    showNotification('Error al cargar números. Intenta recargar.', false);
+    spinner.style.display = 'none';
   });
 
-  // Iniciar la carga de números
-  cargarNumeros();
+  // Procesar el formulario
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const nombre = document.getElementById('nombre').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
+
+    if (selectedNumbers.length === 0) return showNotification('Selecciona al menos un número.', false);
+    if (!validateName(nombre)) return showNotification('Nombre inválido (mínimo 5 caracteres).', false);
+    if (!validatePhone(telefono)) return showNotification('Teléfono inválido (10 a 15 dígitos).', false);
+
+    submitBtn.disabled = true;
+    submitSpinner.style.display = 'block';
+
+    // Verificar que los números sigan disponibles
+    const checkPromises = selectedNumbers.map(num => 
+      db.collection('rifa').where('numero', '==', num).get()
+    );
+
+    Promise.all(checkPromises)
+      .then(snapshots => {
+        const ocupados = snapshots
+          .filter(snap => !snap.empty)
+          .map(snap => snap.docs[0].data().numero);
+        
+        if (ocupados.length > 0) {
+          showNotification(`Los números ${ocupados.join(', ')} ya están ocupados. Por favor selecciona otros.`, false);
+          return;
+        }
+        
+        // Registrar cada número seleccionado
+        const batch = db.batch();
+        const reservaRef = db.collection('compradores').doc();
+        
+        // Guardar información del comprador
+        batch.set(reservaRef, {
+          nombre,
+          telefono,
+          numeros: selectedNumbers,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Marcar números como ocupados
+        selectedNumbers.forEach(num => {
+          const numRef = db.collection('rifa').doc();
+          batch.set(numRef, { 
+            numero: num,
+            compradorId: reservaRef.id,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+        
+        return batch.commit();
+      })
+      .then(() => {
+        // Actualizar UI: marcar números como ocupados
+        selectedNumbers.forEach(num => {
+          const div = document.querySelector(`.number[data-num="${num}"]`);
+          if (div) {
+            div.classList.add('ocupado');
+            div.classList.remove('selected');
+            div.style.pointerEvents = 'none';
+          }
+        });
+        
+        showNotification('¡Reserva exitosa! Gracias por tu apoyo. 🎉', true);
+        
+        // Resetear formulario
+        selectedNumbers = [];
+        inputNumero.value = '';
+        totalPago.innerHTML = `<strong>Total a pagar:</strong> $0`;
+        form.reset();
+      })
+      .catch(error => {
+        console.error('Error al guardar:', error);
+        showNotification('Error al procesar la reserva. Intenta de nuevo.', false);
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+        submitSpinner.style.display = 'none';
+      });
+  });
 });
