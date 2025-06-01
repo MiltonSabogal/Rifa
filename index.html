@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rifa Solidaria</title>
+  <title>Rifa Solidaria MISAGA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
@@ -54,30 +54,10 @@
   
   <div id="notification" class="notification"></div>
 
-  <!-- Firebase SDKs (Compat) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-
-  <!-- Tu configuración Firebase -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
-      authDomain: "rifa-misaga.firebaseapp.com",
-      databaseURL: "https://rifa-misaga-default-rtdb.firebaseio.com",
-      projectId: "rifa-misaga",
-      storageBucket: "rifa-misaga.firebasestorage.app",
-      messagingSenderId: "495411826218",
-      appId: "1:495411826218:web:5fb2d24364b496d0cfbd53",
-      measurementId: "G-CNPG01QT6H"
-    };
-
-    // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
-   const db = firebase.firestore();
-  </script>
-
-  <!-- Tu lógica personalizada -->
+  
   <script src="script.js"></script>
 </body>
 </html>
