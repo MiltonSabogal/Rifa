@@ -17,48 +17,47 @@
       <div class="sorteo-info">Valor: $20.000 Pagas por Daviplata Nequi o transfiya 3142802903| Sorteo: 21 de Junio con Lotería de Boyacá </div>
     </div>
   </header>
-  
+
   <main class="container">
     <section class="numbers" id="numeros-container">
       <div class="spinner" id="spinner"></div>
     </section>
-    
+
     <aside class="formulario" id="formulario-container">
       <h2>Participa y Apóyame</h2>
       <form id="form-rifa">
         <label for="numero">Número seleccionado:</label>
         <input type="text" id="numero" name="numero" readonly required>
-        
+
         <label for="nombre">Nombre completo:</label>
         <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
-        
+
         <label for="telefono">Teléfono:</label>
         <input type="tel" id="telefono" name="telefono" required placeholder="Tu número de teléfono">
-        
+
         <button type="submit" id="submit-btn">Reservar número</button>
         <div class="spinner" id="submit-spinner"></div>
         <p id="total-pago"><strong>Total a pagar:</strong> $0</p>
-        
+
         <div class="mensaje-final">
           <p>Más que un aporte: es un abrazo en forma de oportunidad. ¡Agradezco tu generosidad infinita!</p>
           <p>¡Participa! Tu apoyo es mi impulso ✨</p>
           <p>🔢 <strong>Mecánica:</strong> Elige un número (00 al 99).<br>
-             🏆 <strong>Ganador:</strong> Quien coincida con las 2 últimas cifras del sorteo de la Lotería de Boyacá del 21 de junio.<br>
-             🙏 <strong>¿Por qué?</strong> Tu apoyo me impulsa mientras busco nuevas oportunidades laborales.<br>
-             ❤️ <strong>¡Cada número cuenta!</strong></p>
+              🏆 <strong>Ganador:</strong> Quien coincida con las 2 últimas cifras del sorteo de la Lotería de Boyacá del 21 de junio.<br>
+              🙏 <strong>¿Por qué?</strong> Tu apoyo me impulsa mientras busco nuevas oportunidades laborales.<br>
+              ❤️ <strong>¡Cada número cuenta!</strong></p>
           <p><em>"No te niegues a hacer el bien a quien es debido, cuando tuvieres poder para hacerlo."<br>(Proverbios 3:27)</em></p>
         </div>
       </form>
     </aside>
   </main>
-  
+
   <div id="notification" class="notification"></div>
   <div id="connection-status" class="connection-status"></div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+
   <script src="script.js"></script>
 </body>
 </html>
