@@ -12,7 +12,7 @@
 <body>
   <header>
     <div class="logo-titulo">
-      <img src="img/logo-misaga.png.png" alt="Logo MISAGA" />
+      <img src="img/logo-misaga.png" alt="Logo MISAGA" />
       <h1>Rifa Solidaria - ¡Gánate 1 Millón de Pesos!</h1>
       <div class="sorteo-info">Valor: $20.000 | Sorteo: 21 de Junio con Lotería de Boyacá</div>
     </div>
@@ -20,7 +20,7 @@
   
   <main class="container">
     <section class="numbers" id="numeros-container">
-      <!-- Números generados con JavaScript -->
+      <div class="spinner" id="spinner"></div>
     </section>
     
     <aside class="formulario">
@@ -33,9 +33,10 @@
         <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
         
         <label for="telefono">Teléfono:</label>
-        <input type="text" id="telefono" name="telefono" required placeholder="Tu número de teléfono">
+        <input type="tel" id="telefono" name="telefono" required placeholder="Tu número de teléfono">
         
-        <button type="submit">Reservar número</button>
+        <button type="submit" id="submit-btn">Reservar número</button>
+        <div class="spinner" id="submit-spinner"></div>
         <p id="total-pago"><strong>Total a pagar:</strong> $0</p>
         
         <div class="mensaje-final">
