@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rifa MISAGA</title>
+  <title>Rifa Solidaria</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,41 +11,48 @@
 </head>
 <body>
   <header>
-  <div class="logo-titulo">
-    <img src="img/logo-misaga.png.png" alt="Logo MISAGA" />
-    <h1> Gran Rifa Solidaria !Ganate 1 Millon de Pesos¡ Valor $20.000</h1>
-  </div>
-</header>
+    <div class="logo-titulo">
+      <img src="img/logo-misaga.png.png" alt="Logo MISAGA" />
+      <h1>Rifa Solidaria - ¡Gánate 1 Millón de Pesos!</h1>
+      <div class="sorteo-info">Valor: $20.000 | Sorteo: 21 de Junio con Lotería de Boyacá</div>
+    </div>
+  </header>
+  
   <main class="container">
     <section class="numbers" id="numeros-container">
       <!-- Números generados con JavaScript -->
     </section>
+    
     <aside class="formulario">
-      <h2>Formulario de Participación</h2>
+      <h2>Participa y Apóyame</h2>
       <form id="form-rifa">
         <label for="numero">Número seleccionado:</label>
         <input type="text" id="numero" name="numero" readonly required>
-
+        
         <label for="nombre">Nombre completo:</label>
-        <input type="text" id="nombre" name="nombre" required>
-
+        <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
+        
         <label for="telefono">Teléfono:</label>
-        <input type="text" id="telefono" name="telefono" required>
-
+        <input type="text" id="telefono" name="telefono" required placeholder="Tu número de teléfono">
+        
         <button type="submit">Reservar número</button>
         <p id="total-pago"><strong>Total a pagar:</strong> $0</p>
-<div class="mensaje-final">
-  <p>Más que un aporte: es un abrazo en forma de oportunidad. ¡Agradezco tu generosidad infinita!</p>
-  <p>¡Participa! Tu apoyo es mi sorteo ✨</p>
-  <p>🔢 <strong>Mecánica:</strong> Elige un número (00 al 99).<br>
-     🏆 <strong>Ganador:</strong> Quien coincida con las 2 últimas cifras del sorteo de la Lotería de Boyacá del 21 de junio.<br>
-     🙏 <strong>¿Por qué?</strong> Tu apoyo me impulsa mientras busco nuevas oportunidades laborales.<br>
-     ❤️ <strong>¡Cada número cuenta!</strong></p>
-  <p><em>"No te niegues a hacer el bien a quien es debido, cuando tuvieres poder para hacerlo."<br>(Proverbios 3:27)</em></p>
-</div>
+        
+        <div class="mensaje-final">
+          <p>Más que un aporte: es un abrazo en forma de oportunidad. ¡Agradezco tu generosidad infinita!</p>
+          <p>¡Participa! Tu apoyo es mi impulso ✨</p>
+          <p>🔢 <strong>Mecánica:</strong> Elige un número (00 al 99).<br>
+             🏆 <strong>Ganador:</strong> Quien coincida con las 2 últimas cifras del sorteo de la Lotería de Boyacá del 21 de junio.<br>
+             🙏 <strong>¿Por qué?</strong> Tu apoyo me impulsa mientras busco nuevas oportunidades laborales.<br>
+             ❤️ <strong>¡Cada número cuenta!</strong></p>
+          <p><em>"No te niegues a hacer el bien a quien es debido, cuando tuvieres poder para hacerlo."<br>(Proverbios 3:27)</em></p>
+        </div>
       </form>
     </aside>
   </main>
+  
+  <div id="notification" class="notification"></div>
+  
   <script src="script.js"></script>
 </body>
 </html>
