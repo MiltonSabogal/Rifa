@@ -14,7 +14,7 @@
     <div class="logo-titulo">
       <img src="img/logo-misaga.png" alt="Logo MISAGA" />
       <h1>Rifa Solidaria - ¡Gánate 1 Millón de Pesos!</h1>
-      <div class="sorteo-info">Valor: $20.000 | Sorteo: 21 de Junio con Lotería de Boyacá</div>
+      <div class="sorteo-info">Valor: $20.000 Pagas por Daviplata o Nequi 3142802903| Sorteo: 21 de Junio con Lotería de Boyacá </div>
     </div>
   </header>
   
@@ -53,7 +53,30 @@
   </main>
   
   <div id="notification" class="notification"></div>
-  
+
+  <!-- Firebase SDKs (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <!-- Tu configuración Firebase -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
+      authDomain: "rifa-misaga.firebaseapp.com",
+      databaseURL: "https://rifa-misaga-default-rtdb.firebaseio.com",
+      projectId: "rifa-misaga",
+      storageBucket: "rifa-misaga.firebasestorage.app",
+      messagingSenderId: "495411826218",
+      appId: "1:495411826218:web:5fb2d24364b496d0cfbd53",
+      measurementId: "G-CNPG01QT6H"
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+
+  <!-- Tu lógica personalizada -->
   <script src="script.js"></script>
 </body>
 </html>
