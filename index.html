@@ -4,13 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rifa MISAGA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <img src="img/logo-misaga.png.png" alt="Logo MISAGA" width="150" />
-    Rifa Interactiva
-  </header>
+  <div class="logo-titulo">
+    <img src="img/logo-misaga.png.png" alt="Logo MISAGA" />
+    <h1> Gran Rifa Solidaria !Ganate 1 Millon de Pesos¡ Valor $20.000</h1>
+  </div>
+</header>
   <main class="container">
     <section class="numbers" id="numeros-container">
       <!-- Números generados con JavaScript -->
@@ -28,6 +33,16 @@
         <input type="text" id="telefono" name="telefono" required>
 
         <button type="submit">Reservar número</button>
+        <p id="total-pago"><strong>Total a pagar:</strong> $0</p>
+<div class="mensaje-final">
+  <p>Más que un aporte: es un abrazo en forma de oportunidad. ¡Agradezco tu generosidad infinita!</p>
+  <p>¡Participa! Tu apoyo es mi sorteo ✨</p>
+  <p>🔢 <strong>Mecánica:</strong> Elige un número (00 al 99).<br>
+     🏆 <strong>Ganador:</strong> Quien coincida con las 2 últimas cifras del sorteo de la Lotería de Boyacá del 21 de junio.<br>
+     🙏 <strong>¿Por qué?</strong> Tu apoyo me impulsa mientras busco nuevas oportunidades laborales.<br>
+     ❤️ <strong>¡Cada número cuenta!</strong></p>
+  <p><em>"No te niegues a hacer el bien a quien es debido, cuando tuvieres poder para hacerlo."<br>(Proverbios 3:27)</em></p>
+</div>
       </form>
     </aside>
   </main>
