@@ -98,7 +98,7 @@ function cargarNumerosOcupados() {
   
   // Usar caché si está fresco
   if (now - cacheTimestamp < CACHE_DURATION && numerosOcupados.length > 0) {
-    generarNumeros();
+    generarNumeros(); // Asegurarse de llamar a generarNumeros aquí
     return;
   }
   
@@ -107,7 +107,7 @@ function cargarNumerosOcupados() {
   db.collection('rifa').get().then(snapshot => {
     numerosOcupados = snapshot.docs.map(doc => doc.data().numero);
     cacheTimestamp = Date.now();
-    generarNumeros();
+    generarNumeros(); // Llamar a generarNumeros después de obtener datos
     
     // Guardar en localStorage
     localStorage.setItem('cacheRifa', JSON.stringify({
@@ -126,9 +126,10 @@ function cargarNumerosOcupados() {
       showNotification('Usando datos locales. Error al conectar con el servidor.', false);
     } else {
       showNotification('Error al cargar números. Generando todos disponibles.', false);
+      numerosOcupados = [];
     }
     
-    generarNumeros();
+    generarNumeros(); // Asegurarse de llamar a generarNumeros en caso de error
   });
 }
 
@@ -166,7 +167,6 @@ function mostrarMensajePago() {
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
   verificarConexion();
-  cargarNumerosOcupados();
   
   // Cargar desde caché al inicio
   const cache = localStorage.getItem('cacheRifa');
@@ -174,8 +174,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = JSON.parse(cache);
     numerosOcupados = data.numerosOcupados || [];
     cacheTimestamp = data.timestamp || 0;
-    generarNumeros();
+    generarNumeros(); // Generar números con datos de caché
   }
+  
+  // Cargar datos actualizados de Firestore
+  cargarNumerosOcupados();
 
   // Procesar el formulario
   form.addEventListener('submit', async e => {
