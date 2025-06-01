@@ -14,17 +14,6 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Verificar estado de conexión a Firebase
-firebase.firestore().enableNetwork()
-  .then(() => {
-    console.log("Conectado a Firestore");
-    // Podemos mostrar un indicador visual si lo deseamos
-  })
-  .catch((error) => {
-    console.error("Error de conexión a Firestore:", error);
-    showNotification('Error de conexión. Intenta recargar.', false);
-  });
-
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('numeros-container');
   const inputNumero = document.getElementById('numero');
@@ -49,9 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const validatePhone = phone => /^[0-9]{10,15}$/.test(phone);
   const validateName = name => name.trim().length >= 5;
 
-  // Cargar los números ocupados desde Firestore
-  db.collection('rifa').get().then(snapshot => {
-    const numerosOcupados = snapshot.docs.map(doc => doc.data().numero);
+  // Función para generar los números
+  function generarNumeros(numerosOcupados) {
+    // Limpiar contenedor antes de generar
+    container.innerHTML = '';
     
     // Generar todos los números del 00 al 99
     for (let i = 0; i < 100; i++) {
@@ -94,12 +84,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       container.appendChild(div);
     }
-
     spinner.style.display = 'none';
+  }
+
+  // Cargar los números ocupados desde Firestore
+  db.collection('rifa').get().then(snapshot => {
+    const numerosOcupados = snapshot.docs.map(doc => doc.data().numero);
+    generarNumeros(numerosOcupados);
   }).catch(error => {
     console.error('Error al cargar números:', error);
-    showNotification('Error al cargar números. Intenta recargar.', false);
-    spinner.style.display = 'none';
+    showNotification('Error al cargar números. Generando todos disponibles.', false);
+    // Generar números sin verificar ocupados
+    generarNumeros([]);
   });
 
   // Procesar el formulario
@@ -121,8 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .where('numero', 'in', selectedNumbers)
         .get();
 
-      if (!snapshot.empty) {
-        const ocupados = snapshot.docs.map(doc => doc.data().numero);
+      if (snapshot.size > 0) {
+        const ocupados = [];
+        snapshot.forEach(doc => ocupados.push(doc.data().numero));
         showNotification(`Los números ${ocupados.join(', ')} ya están ocupados. Por favor selecciona otros.`, false);
         return;
       }
@@ -178,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (error.code === 'unavailable') {
         showNotification('Error de conexión con la base de datos. Verifica tu internet.', false);
       } else {
-        showNotification('Error al procesar la reserva. Intenta de nuevo.', false);
+        showNotification('Error al procesar la reserva: ' + error.message, false);
       }
     } finally {
       submitBtn.disabled = false;
