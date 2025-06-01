@@ -130,3 +130,7 @@ header {
   border-radius: 10px;
   line-height: 1.6;
 }
+.number.ocupado {
+  background-color: #999 !important;
+  cursor: not-allowed;
+}
