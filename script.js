@@ -4,8 +4,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const totalPago = document.getElementById('total-pago');
   const notification = document.getElementById('notification');
   const form = document.getElementById('form-rifa');
+  const spinner = document.getElementById('spinner');
+  const submitSpinner = document.getElementById('submit-spinner');
+  const submitBtn = document.getElementById('submit-btn');
   
   let selectedNumbers = [];
+  spinner.style.display = 'block';
   
   // URL de tu Google Apps Script (REEMPLAZAR CON TU URL)
   const scriptURL = 'https://script.google.com/macros/s/AKfycbz-045QvsDb_20GL4JCArMwLT168xZn2d7JvCY_pRUClkbu23K7-7dDBAqWrnFlIHiT/exec';
@@ -77,10 +81,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         container.appendChild(div);
       }
+      spinner.style.display = 'none';
     })
     .catch(error => {
       console.error('Error al obtener números ocupados:', error);
       showNotification('Error al cargar números. Por favor, recarga la página.', false);
+      spinner.style.display = 'none';
     });
   
   // Manejar envío del formulario
@@ -106,20 +112,20 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
+    // Deshabilitar botón y mostrar spinner
+    submitBtn.disabled = true;
+    submitSpinner.style.display = 'block';
+    
     // Preparar datos para enviar
-    const formData = {
-      numero: selectedNumbers.join(', '),
-      nombre: nombre,
-      telefono: telefono
-    };
+    const formData = new FormData();
+    formData.append('numero', selectedNumbers.join(', '));
+    formData.append('nombre', nombre);
+    formData.append('telefono', telefono);
     
     // Enviar datos a Google Apps Script
     fetch(scriptURL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
+      body: formData
     })
     .then(response => {
       if (!response.ok) {
@@ -153,6 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
     .catch(error => {
       console.error('Error:', error);
       showNotification('Error al enviar el formulario. Por favor, inténtalo de nuevo.', false);
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      submitSpinner.style.display = 'none';
     });
   });
 });
