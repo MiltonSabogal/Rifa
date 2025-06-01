@@ -104,6 +104,24 @@ header::before {
   color: #0e3565;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-size: 0.9em;
+  position: relative;
+  overflow: hidden;
+}
+
+.number::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.number:hover::after {
+  opacity: 1;
 }
 
 .number:hover {
@@ -117,6 +135,13 @@ header::before {
   color: white;
   border-color: #388e3c;
   transform: scale(1.05);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1.05); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1.05); }
 }
 
 .formulario {
@@ -127,6 +152,17 @@ header::before {
   min-width: 300px;
   color: white;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.formulario::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, #ffcc00, #ff9800);
 }
 
 .formulario h2 {
@@ -151,6 +187,13 @@ header::before {
   border: 2px solid #00796b;
   font-size: 0.9em;
   background-color: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s;
+}
+
+.formulario input:focus {
+  outline: none;
+  border-color: #ffcc00;
+  box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.3);
 }
 
 .formulario button {
@@ -167,6 +210,24 @@ header::before {
   font-weight: 700;
   text-transform: uppercase;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.formulario button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.formulario button:hover::after {
+  opacity: 1;
 }
 
 .formulario button:hover {
@@ -226,6 +287,17 @@ header::before {
   color: #ddd;
   cursor: not-allowed;
   border-color: #666;
+  position: relative;
+}
+
+.number.ocupado::after {
+  content: "✗";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  color: rgba(255, 0, 0, 0.7);
 }
 
 .notification {
@@ -241,6 +313,9 @@ header::before {
   transform: translateX(120%);
   transition: transform 0.4s ease;
   max-width: 90%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .notification.show {
@@ -322,4 +397,60 @@ header::before {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.connection-status {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  z-index: 1000;
+}
+
+.online {
+  background-color: #4caf50;
+  color: white;
+}
+
+.offline {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Estilos para el mensaje de pago */
+.mensaje-pago {
+  text-align: center;
+  padding: 20px;
+  color: white;
+}
+
+.mensaje-pago h3 {
+  color: #ffcc00;
+  margin-top: 0;
+}
+
+.mensaje-pago ul {
+  text-align: left;
+  margin: 20px auto;
+  max-width: 300px;
+}
+
+.boton-whatsapp {
+  display: inline-block;
+  background-color: #25D366;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: all 0.3s;
+}
+
+.boton-whatsapp:hover {
+  background-color: #128C7E;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
