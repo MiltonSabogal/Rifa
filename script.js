@@ -3,7 +3,7 @@ const inputNumero = document.getElementById('numero');
 const totalPago = document.getElementById('total-pago');
 
 let selectedNumbers = [];
-fetch('https://script.google.com/macros/s/AKfycbylDpVzxqhM8o9k1yvNkY8zP6d4hIxMfyyAbf7IH9SsWgnSEGGCPNLlKfbPkiILrX0F9Q/exec')
+fetch('https://script.google.com/macros/s/AKfycbw7SPwuKTSeW8YnTliMJ1y-r1HVTCCjTTsuiFWe4qwa6qxAIgL2BT9c2kBQbnaNb7g6VQ/exec')
   .then(response => response.json())
   .then(data => {
     numerosOcupados = data;
@@ -76,7 +76,7 @@ document.getElementById('form-rifa').addEventListener('submit', function (e) {
   const nombre = document.getElementById('nombre').value;
   const telefono = document.getElementById('telefono').value;
 
-  fetch('https://script.google.com/macros/s/AKfycbylDpVzxqhM8o9k1yvNkY8zP6d4hIxMfyyAbf7IH9SsWgnSEGGCPNLlKfbPkiILrX0F9Q/exec', {
+  fetch('https://script.google.com/macros/s/AKfycbw7SPwuKTSeW8YnTliMJ1y-r1HVTCCjTTsuiFWe4qwa6qxAIgL2BT9c2kBQbnaNb7g6VQ/exec', {
     method: 'POST',
     body: JSON.stringify({ numero, nombre, telefono }),
     headers: {
