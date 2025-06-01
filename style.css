@@ -42,7 +42,7 @@ header::before {
 }
 
 .logo-titulo img {
-  width: 200px;
+  width: 150px;
   height: auto;
   border-radius: 50%;
   border: 3px solid white;
@@ -50,7 +50,7 @@ header::before {
 }
 
 .logo-titulo h1 {
-  font-size: 1.8em;
+  font-size: 1.5em;
   margin: 10px 0;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -62,7 +62,7 @@ header::before {
   padding: 10px;
   border-radius: 8px;
   margin-top: 10px;
-  font-size: 1.1em;
+  font-size: 1em;
 }
 
 .sorteo-info strong {
@@ -72,8 +72,8 @@ header::before {
 .container {
   display: flex;
   flex: 1;
-  padding: 20px;
-  gap: 25px;
+  padding: 15px;
+  gap: 20px;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -83,26 +83,27 @@ header::before {
 .numbers {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 10px;
+  gap: 8px;
   flex: 2;
   min-width: 300px;
   background-color: rgba(255, 255, 255, 0.7);
-  padding: 20px;
+  padding: 15px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .number {
-  padding: 15px;
+  padding: 12px 5px;
   text-align: center;
   background: linear-gradient(to bottom, #ffffff, #f0f4f8);
   border: 2px solid #0e3565;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
   color: #0e3565;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.9em;
 }
 
 .number:hover {
@@ -121,7 +122,7 @@ header::before {
 .formulario {
   flex: 1;
   background: linear-gradient(to bottom, #0e3565, #1a4b8c);
-  padding: 25px;
+  padding: 20px;
   border-radius: 10px;
   min-width: 300px;
   color: white;
@@ -129,42 +130,41 @@ header::before {
 }
 
 .formulario h2 {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   text-align: center;
   color: #ffcc00;
-  font-size: 1.8em;
+  font-size: 1.5em;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .formulario label {
   display: block;
-  margin-top: 15px;
+  margin-top: 12px;
   font-weight: 600;
 }
 
 .formulario input {
   width: 100%;
-  padding: 12px;
-  margin-top: 8px;
-  border-radius: 8px;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
   border: 2px solid #00796b;
-  font-size: 1em;
+  font-size: 0.9em;
   background-color: rgba(255, 255, 255, 0.9);
 }
 
 .formulario button {
   width: 100%;
-  padding: 14px;
-  margin-top: 25px;
+  padding: 12px;
+  margin-top: 20px;
   border-radius: 8px;
   border: none;
   background: linear-gradient(to right, #ffcc00, #ff9800);
   color: #0e3565;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 1.1em;
+  font-size: 1em;
   font-weight: 700;
-  letter-spacing: 0.5px;
   text-transform: uppercase;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
@@ -175,32 +175,35 @@ header::before {
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.25);
 }
 
-.formulario button:active {
-  transform: translateY(0);
+.formulario button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 #total-pago {
-  margin-top: 20px;
-  font-size: 1.3em;
+  margin-top: 15px;
+  font-size: 1.1em;
   text-align: center;
-  padding: 10px;
+  padding: 8px;
   background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 700;
 }
 
 .mensaje-final {
-  margin-top: 25px;
-  font-size: 1em;
+  margin-top: 20px;
+  font-size: 0.9em;
   background-color: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 10px;
-  line-height: 1.7;
+  padding: 15px;
+  border-radius: 8px;
+  line-height: 1.6;
   border-left: 4px solid #ffcc00;
 }
 
 .mensaje-final p {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .mensaje-final strong {
@@ -209,12 +212,13 @@ header::before {
 
 .mensaje-final em {
   display: block;
-  margin-top: 15px;
+  margin-top: 10px;
   font-style: italic;
   text-align: center;
   background-color: rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  border-radius: 6px;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 0.9em;
 }
 
 .number.ocupado {
@@ -236,6 +240,7 @@ header::before {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transform: translateX(120%);
   transition: transform 0.4s ease;
+  max-width: 90%;
 }
 
 .notification.show {
@@ -250,13 +255,17 @@ header::before {
   background: linear-gradient(to right, #f44336, #d32f2f);
 }
 
+/* Media Queries */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
+    padding: 10px;
   }
   
   .numbers {
     order: 2;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
   }
   
   .formulario {
@@ -264,6 +273,53 @@ header::before {
   }
   
   .logo-titulo h1 {
-    font-size: 1.5em;
+    font-size: 1.3em;
   }
+  
+  .number {
+    padding: 15px 5px;
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-titulo img {
+    width: 120px;
+  }
+  
+  .logo-titulo h1 {
+    font-size: 1.1em;
+  }
+  
+  .sorteo-info {
+    font-size: 0.9em;
+    padding: 8px;
+  }
+  
+  .formulario {
+    padding: 15px;
+  }
+  
+  .notification {
+    top: 10px;
+    right: 10px;
+    font-size: 0.9em;
+    padding: 10px 15px;
+  }
+}
+
+/* Spinner para carga */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #ffcc00;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
