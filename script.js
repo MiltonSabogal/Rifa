@@ -28,7 +28,8 @@ const submitText = document.getElementById('submit-text');
 // Modales
 const modalConfirmacionPago = document.getElementById('modalConfirmacionPago');
 const modalPago = document.getElementById('modalPago');
-const closeModals = document.querySelectorAll('.close');
+const closeConfirmacion = document.getElementById('closeConfirmacion');
+const closePago = document.getElementById('closePago');
 
 // Elementos de los modales
 const opcionesConfirmacion = document.querySelectorAll('.opcion-confirmacion');
@@ -39,8 +40,8 @@ const btnConfirmar = document.getElementById('confirmarReserva');
 
 // Variables globales
 let selectedNumbers = [];
-let selectedTipoPago = ''; // 'pago-inmediato' o 'pago-despues'
-let selectedMetodo = ''; // 'efectivo', 'nequi', 'daviplata'
+let selectedTipoPago = '';
+let selectedMetodo = '';
 let currentReservationData = null;
 let numerosOcupados = [];
 let cacheTimestamp = 0;
@@ -50,7 +51,9 @@ const CACHE_DURATION = 5 * 60 * 1000;
 function showNotification(message, isSuccess) {
   notification.textContent = message;
   notification.className = isSuccess ? 'notification success show' : 'notification error show';
-  setTimeout(() => notification.classList.remove('show'), 4000);
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 4000);
 }
 
 // Validaciones
@@ -176,108 +179,157 @@ function cargarNumerosOcupados() {
   });
 }
 
-// Manejar envío del formulario
-form.addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const nombre = document.getElementById('nombre').value.trim();
-  const telefono = document.getElementById('telefono').value.trim();
-  
-  // Validaciones
-  if (selectedNumbers.length === 0) {
-    showNotification('Por favor, selecciona al menos un número.', false);
-    return;
-  }
-  
-  if (!validateName(nombre)) {
-    showNotification('Por favor, ingresa tu nombre completo (mínimo 5 caracteres).', false);
-    return;
-  }
-  
-  if (!validatePhone(telefono)) {
-    showNotification('Por favor, ingresa un número de teléfono válido (10 a 15 dígitos).', false);
-    return;
-  }
-  
-  // Guardar datos de la reserva
-  currentReservationData = {
-    numero: selectedNumbers.join(', '),
-    nombre: nombre,
-    telefono: telefono
-  };
-  
-  // Mostrar modal de confirmación de pago
-  mostrarModalConfirmacionPago();
-});
-
 // Mostrar modal de confirmación de pago
 function mostrarModalConfirmacionPago() {
   resetModales();
   modalConfirmacionPago.style.display = 'block';
+  console.log("Modal de confirmación mostrado");
 }
 
-// Seleccionar tipo de pago (Voy a pagar ahora / Pagaré después)
-opcionesConfirmacion.forEach(opcion => {
-  opcion.addEventListener('click', function() {
-    opcionesConfirmacion.forEach(o => o.classList.remove('selected'));
-    this.classList.add('selected');
-    selectedTipoPago = this.dataset.tipo;
-  });
-});
-
-// Continuar desde la confirmación de tipo de pago
-confirmarTipoPagoBtn.addEventListener('click', function() {
-  if (!selectedTipoPago) {
-    showNotification('Por favor, selecciona una opción de pago.', false);
-    return;
-  }
+// Resetear modales
+function resetModales() {
+  modalConfirmacionPago.style.display = 'none';
+  modalPago.style.display = 'none';
   
-  if (selectedTipoPago === 'pago-inmediato') {
-    // Si va a pagar ahora, mostrar modal de métodos de pago
-    modalConfirmacionPago.style.display = 'none';
-    modalPago.style.display = 'block';
-  } else {
-    // Si pagará después, procesar directamente como reservado
-    currentReservationData.estado = 'reservado';
-    currentReservationData.metodo_pago = 'efectivo'; // Por defecto para pagos posteriores
-    guardarReservaEnFirebase();
-  }
-});
+  opcionesConfirmacion.forEach(o => o.classList.remove('selected'));
+  metodosPago.forEach(m => m.classList.remove('selected'));
+  
+  selectedTipoPago = '';
+  selectedMetodo = '';
+  infoNequi.style.display = 'none';
+}
 
-// Seleccionar método de pago (solo para "Voy a pagar ahora")
-metodosPago.forEach(metodo => {
-  metodo.addEventListener('click', function() {
-    metodosPago.forEach(m => m.classList.remove('selected'));
-    this.classList.add('selected');
-    selectedMetodo = this.dataset.metodo;
+// INICIALIZAR EVENT LISTENERS PARA OPCIONES
+function inicializarEventListeners() {
+  console.log("Inicializando event listeners...");
+  
+  // Manejar envío del formulario
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    console.log("Formulario enviado");
     
-    // Mostrar información adicional para Nequi/DaviPlata
-    if (selectedMetodo === 'nequi' || selectedMetodo === 'daviplata') {
-      infoNequi.style.display = 'block';
-      setTimeout(() => {
-        btnConfirmar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
+    const nombre = document.getElementById('nombre').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
+    
+    // Validaciones
+    if (selectedNumbers.length === 0) {
+      showNotification('Por favor, selecciona al menos un número.', false);
+      return;
+    }
+    
+    if (!validateName(nombre)) {
+      showNotification('Por favor, ingresa tu nombre completo (mínimo 5 caracteres).', false);
+      return;
+    }
+    
+    if (!validatePhone(telefono)) {
+      showNotification('Por favor, ingresa un número de teléfono válido (10 a 15 dígitos).', false);
+      return;
+    }
+    
+    // Guardar datos de la reserva
+    currentReservationData = {
+      numero: selectedNumbers.join(', '),
+      nombre: nombre,
+      telefono: telefono
+    };
+    
+    // Mostrar modal de confirmación de pago
+    mostrarModalConfirmacionPago();
+  });
+
+  // Seleccionar tipo de pago (Voy a pagar ahora / Pagaré después)
+  opcionesConfirmacion.forEach(opcion => {
+    opcion.addEventListener('click', function() {
+      console.log("Opción clickeada:", this.dataset.tipo);
+      opcionesConfirmacion.forEach(o => o.classList.remove('selected'));
+      this.classList.add('selected');
+      selectedTipoPago = this.dataset.tipo;
+      console.log("Tipo de pago seleccionado:", selectedTipoPago);
+    });
+  });
+
+  // Continuar desde la confirmación de tipo de pago
+  confirmarTipoPagoBtn.addEventListener('click', function() {
+    console.log("Botón continuar clickeado, tipo seleccionado:", selectedTipoPago);
+    
+    if (!selectedTipoPago) {
+      showNotification('Por favor, selecciona una opción de pago.', false);
+      return;
+    }
+    
+    if (selectedTipoPago === 'pago-inmediato') {
+      // Si va a pagar ahora, mostrar modal de métodos de pago
+      modalConfirmacionPago.style.display = 'none';
+      modalPago.style.display = 'block';
+      console.log("Mostrando modal de métodos de pago");
     } else {
-      infoNequi.style.display = 'none';
+      // Si pagará después, procesar directamente como reservado
+      console.log("Procesando pago posterior");
+      currentReservationData.estado = 'reservado';
+      currentReservationData.metodo_pago = 'efectivo';
+      guardarReservaEnFirebase();
     }
   });
-});
 
-// Confirmar reserva final
-btnConfirmar.addEventListener('click', function() {
-  if (!selectedMetodo) {
-    showNotification('Por favor, selecciona un método de pago.', false);
-    return;
-  }
-  
-  // Para "Voy a pagar ahora", marcar como pagado
-  currentReservationData.estado = 'pagado';
-  currentReservationData.metodo_pago = selectedMetodo;
-  guardarReservaEnFirebase();
-});
+  // Seleccionar método de pago (solo para "Voy a pagar ahora")
+  metodosPago.forEach(metodo => {
+    metodo.addEventListener('click', function() {
+      console.log("Método clickeado:", this.dataset.metodo);
+      metodosPago.forEach(m => m.classList.remove('selected'));
+      this.classList.add('selected');
+      selectedMetodo = this.dataset.metodo;
+      console.log("Método de pago seleccionado:", selectedMetodo);
+      
+      // Mostrar información adicional para Nequi/DaviPlata
+      if (selectedMetodo === 'nequi' || selectedMetodo === 'daviplata') {
+        infoNequi.style.display = 'block';
+      } else {
+        infoNequi.style.display = 'none';
+      }
+    });
+  });
+
+  // Confirmar reserva final
+  btnConfirmar.addEventListener('click', function() {
+    console.log("Confirmar pago clickeado, método seleccionado:", selectedMetodo);
+    
+    if (!selectedMetodo) {
+      showNotification('Por favor, selecciona un método de pago.', false);
+      return;
+    }
+    
+    // Para "Voy a pagar ahora", marcar como pagado
+    currentReservationData.estado = 'pagado';
+    currentReservationData.metodo_pago = selectedMetodo;
+    console.log("Procesando pago inmediato con método:", selectedMetodo);
+    guardarReservaEnFirebase();
+  });
+
+  // Cerrar modales
+  closeConfirmacion.addEventListener('click', function() {
+    resetModales();
+  });
+
+  closePago.addEventListener('click', function() {
+    resetModales();
+  });
+
+  // Cerrar modales al hacer click fuera
+  window.addEventListener('click', function(event) {
+    if (event.target === modalConfirmacionPago) {
+      resetModales();
+    }
+    if (event.target === modalPago) {
+      resetModales();
+    }
+  });
+}
 
 // Función para guardar en Firebase
 function guardarReservaEnFirebase() {
+  console.log("Iniciando guardado en Firebase...");
+  
   submitBtn.disabled = true;
   submitText.textContent = 'Procesando...';
   submitSpinner.style.display = 'inline-block';
@@ -344,6 +396,8 @@ function guardarReservaEnFirebase() {
       return batch.commit();
     })
     .then(() => {
+      console.log("Reserva guardada exitosamente en Firebase");
+      
       let mensaje = '';
       
       if (currentReservationData.estado === 'pagado') {
@@ -414,57 +468,13 @@ function guardarReservaEnFirebase() {
     });
 }
 
-// Función para resetear modales
-function resetModales() {
-  modalConfirmacionPago.style.display = 'none';
-  modalPago.style.display = 'none';
-  
-  opcionesConfirmacion.forEach(o => o.classList.remove('selected'));
-  metodosPago.forEach(m => m.classList.remove('selected'));
-  
-  selectedTipoPago = '';
-  selectedMetodo = '';
-  infoNequi.style.display = 'none';
-  currentReservationData = null;
-}
-
-// Cerrar modales
-closeModals.forEach(closeBtn => {
-  closeBtn.addEventListener('click', function() {
-    resetModales();
-  });
-});
-
-// Cerrar modales al hacer click fuera
-window.addEventListener('click', function(event) {
-  if (event.target === modalConfirmacionPago || event.target === modalPago) {
-    resetModales();
-  }
-});
-
-// Función para mejorar la experiencia táctil en móviles
-function mejorarExperienciaMovil() {
-  const inputs = document.querySelectorAll('input');
-  inputs.forEach(input => {
-    input.addEventListener('touchstart', function(e) {
-      setTimeout(() => this.focus(), 100);
-    });
-  });
-  
-  const numbers = document.querySelectorAll('.number');
-  numbers.forEach(number => {
-    number.addEventListener('touchstart', function(e) {
-      this.style.transform = 'scale(0.95)';
-    });
-    
-    number.addEventListener('touchend', function(e) {
-      this.style.transform = '';
-    });
-  });
-}
-
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOM cargado, inicializando aplicación...");
+  
+  // Inicializar todos los event listeners
+  inicializarEventListeners();
+  
   // Cargar desde caché local al inicio
   const cache = localStorage.getItem('cacheRifa');
   if (cache) {
@@ -477,13 +487,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cargar datos actualizados de Firestore
   cargarNumerosOcupados();
   
-  // Mejorar experiencia móvil
-  mejorarExperienciaMovil();
-  
   // Detectar si es un dispositivo móvil
   const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
   if (esMovil) {
     document.body.classList.add('es-movil');
   }
+  
+  console.log("Aplicación inicializada correctamente");
 });
