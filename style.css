@@ -439,6 +439,7 @@ header::before {
   margin: 20px 0;
 }
 
+/* MEJORAR LA INTERACCIÓN DE LAS OPCIONES SELECCIONABLES */
 .opcion-confirmacion {
   background: white;
   border: 2px solid #2e7d32;
@@ -447,6 +448,7 @@ header::before {
   margin: 10px 0;
   cursor: pointer;
   transition: all 0.3s;
+  user-select: none;
 }
 
 .opcion-confirmacion:hover {
@@ -460,6 +462,11 @@ header::before {
   color: white;
   border-color: #1b5e20;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.opcion-confirmacion:active {
+  transform: translateY(0);
 }
 
 .opcion-confirmacion h3 {
@@ -473,11 +480,7 @@ header::before {
   opacity: 0.9;
 }
 
-/* Métodos de pago */
-.metodos-pago {
-  margin: 20px 0;
-}
-
+/* MÉTODOS DE PAGO */
 .metodo-option {
   background: white;
   border: 2px solid #2e7d32;
@@ -486,6 +489,7 @@ header::before {
   margin: 10px 0;
   cursor: pointer;
   transition: all 0.3s;
+  user-select: none;
 }
 
 .metodo-option:hover {
@@ -499,6 +503,11 @@ header::before {
   color: white;
   border-color: #1b5e20;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.metodo-option:active {
+  transform: translateY(0);
 }
 
 .metodo-option h3 {
@@ -548,6 +557,7 @@ header::before {
   font-size: 0.85em;
 }
 
+/* ASEGURAR QUE LOS BOTONES SEAN CLICKEABLES */
 .btn-confirmar {
   width: 100%;
   padding: 15px;
@@ -561,6 +571,7 @@ header::before {
   transition: all 0.3s;
   margin-top: 20px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  user-select: none;
 }
 
 .btn-confirmar:hover {
@@ -802,6 +813,14 @@ header::before {
 
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: #d32f2f;
+}
+
+/* Asegurar que los modales se muestren correctamente en PC */
+@media (min-width: 769px) {
+  .modal-content {
+    margin: 5% auto;
+    max-width: 500px;
+  }
 }
 
 /* Desktop */
