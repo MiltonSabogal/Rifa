@@ -298,6 +298,38 @@
       .content {
         max-height: 65vh;
       }
+      .btn-marcar-pagado {
+  background: #28a745 !important;
+  color: white !important;
+}
+
+.btn-reactivar {
+  background: #17a2b8 !important;
+  color: white !important;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.75em;
+  transition: all 0.3s;
+  flex: 1;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
     }
   </style>
 </head>
@@ -348,280 +380,399 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   
   <script>
-    // Configuración de Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
-      authDomain: "rifa-misaga.firebaseapp.com",
-      databaseURL: "https://rifa-misaga-default-rtdb.firebaseio.com",
-      projectId: "rifa-misaga",
-      storageBucket: "rifa-misaga.firebasestorage.app",
-      messagingSenderId: "495411826218",
-      appId: "1:495411826218:web:5fb2d24364b496d0cfbd53",
-      measurementId: "G-CNPG01QT6H"
-    };
+   // Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
+  authDomain: "rifa-misaga.firebaseapp.com",
+  databaseURL: "https://rifa-misaga-default-rtdb.firebaseio.com",
+  projectId: "rifa-misaga",
+  storageBucket: "rifa-misaga.firebasestorage.app",
+  messagingSenderId: "495411826218",
+  appId: "1:495411826218:web:5fb2d24364b496d0cfbd53",
+  measurementId: "G-CNPG01QT6H"
+};
 
-    // Inicializar Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+// Inicializar Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    let todosLosNumeros = [];
-    let tabActual = 'pagados';
+let todosLosNumeros = [];
+let tabActual = 'pagados';
 
-    // Función para hacer toda la página desplazable
-    function hacerPaginaDesplazable() {
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
-      
-      document.addEventListener('touchmove', function(e) {
-      }, { passive: true });
+// Función para hacer toda la página desplazable
+function hacerPaginaDesplazable() {
+  document.body.style.overflow = 'auto';
+  document.documentElement.style.overflow = 'auto';
+  
+  document.addEventListener('touchmove', function(e) {
+  }, { passive: true });
+}
+
+// Función para mejorar el scroll del contenido
+function mejorarScrollContenido() {
+  const content = document.querySelector('.content');
+  
+  content.addEventListener('touchstart', function(e) {
+  }, { passive: true });
+  
+  content.addEventListener('touchmove', function(e) {
+  }, { passive: true });
+}
+
+// Función para actualizar estadísticas
+function actualizarEstadisticas() {
+  let pagados = 0;
+  let reservados = 0;
+  let recaudado = 0;
+
+  todosLosNumeros.forEach(numero => {
+    if (numero.estado === 'pagado') {
+      pagados++;
+      recaudado += 10000;
+    } else if (numero.estado === 'reservado') {
+      reservados++;
     }
+  });
 
-    // Función para mejorar el scroll del contenido
-    function mejorarScrollContenido() {
-      const content = document.querySelector('.content');
-      
-      content.addEventListener('touchstart', function(e) {
-      }, { passive: true });
-      
-      content.addEventListener('touchmove', function(e) {
-      }, { passive: true });
-    }
+  document.getElementById('total-pagados').textContent = pagados;
+  document.getElementById('total-reservados').textContent = reservados;
+  document.getElementById('total-disponibles').textContent = 100 - (pagados + reservados);
+  document.getElementById('total-recaudado').textContent = `$${recaudado.toLocaleString()}`;
+}
 
-    // Función para actualizar estadísticas
-    function actualizarEstadisticas() {
-      let pagados = 0;
-      let reservados = 0;
-      let recaudado = 0;
+// Cargar todos los números
+function cargarDatos() {
+  const lista = document.getElementById('lista-numeros');
+  lista.innerHTML = '<div class="loading">Cargando datos...</div>';
 
-      todosLosNumeros.forEach(numero => {
-        if (numero.estado === 'pagado') {
-          pagados++;
-          recaudado += 10000;
-        } else if (numero.estado === 'reservado') {
-          reservados++;
-        }
+  db.collection('numeros').orderBy('timestamp', 'desc').get().then(snapshot => {
+    todosLosNumeros = [];
+    
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      todosLosNumeros.push({
+        id: doc.id,
+        ...data,
+        fecha: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'Sin fecha'
       });
+    });
 
-      document.getElementById('total-pagados').textContent = pagados;
-      document.getElementById('total-reservados').textContent = reservados;
-      document.getElementById('total-disponibles').textContent = 100 - (pagados + reservados);
-      document.getElementById('total-recaudado').textContent = `$${recaudado.toLocaleString()}`;
+    // Actualizar estadísticas
+    actualizarEstadisticas();
+    mostrarLista();
+    
+  }).catch(error => {
+    console.error('Error cargando datos:', error);
+    document.getElementById('lista-numeros').innerHTML = '<div class="empty-state">❌ Error cargando datos</div>';
+  });
+}
+
+// Mostrar lista según la pestaña seleccionada
+function mostrarLista() {
+  let numerosFiltrados = [];
+
+  switch(tabActual) {
+    case 'pagados':
+      numerosFiltrados = todosLosNumeros.filter(n => n.estado === 'pagado');
+      break;
+    case 'reservados':
+      numerosFiltrados = todosLosNumeros.filter(n => n.estado === 'reservado');
+      break;
+    case 'todos':
+      numerosFiltrados = todosLosNumeros;
+      break;
+    case 'disponibles':
+      mostrarNumerosDisponibles();
+      return;
+  }
+
+  const lista = document.getElementById('lista-numeros');
+  
+  if (numerosFiltrados.length === 0) {
+    lista.innerHTML = `
+      <div class="empty-state">
+        📭 No hay números ${tabActual === 'todos' ? '' : tabActual}
+      </div>
+    `;
+    return;
+  }
+
+  lista.innerHTML = numerosFiltrados.map(numero => {
+    // Determinar qué botones mostrar según el estado
+    let botones = '';
+    
+    if (numero.estado === 'reservado') {
+      botones = `
+        <div class="actions">
+          <button class="btn btn-marcar-pagado" onclick="marcarComoPagado('${numero.id}', '${numero.numero}', '${numero.nombre || ''}', '${numero.metodo_pago || 'efectivo'}')">
+            ✅ Marcar como Pagado
+          </button>
+          <button class="btn btn-reactivar" onclick="reactivarNumero('${numero.id}', '${numero.numero}', '${numero.nombre || ''}')">
+            🔄 Reactivar
+          </button>
+        </div>
+      `;
+    } else if (numero.estado === 'pagado') {
+      botones = `
+        <div class="actions">
+          <button class="btn btn-reactivar" onclick="reactivarNumero('${numero.id}', '${numero.numero}', '${numero.nombre || ''}')">
+            🔄 Reactivar
+          </button>
+        </div>
+      `;
     }
 
-    // Cargar todos los números
-    function cargarDatos() {
-      const lista = document.getElementById('lista-numeros');
-      lista.innerHTML = '<div class="loading">Cargando datos...</div>';
-
-      db.collection('numeros').orderBy('timestamp', 'desc').get().then(snapshot => {
-        todosLosNumeros = [];
-        
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          todosLosNumeros.push({
-            id: doc.id,
-            ...data,
-            fecha: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'Sin fecha'
-          });
-        });
-
-        // Actualizar estadísticas
-        actualizarEstadisticas();
-        mostrarLista();
-        
-      }).catch(error => {
-        console.error('Error cargando datos:', error);
-        document.getElementById('lista-numeros').innerHTML = '<div class="empty-state">❌ Error cargando datos</div>';
-      });
-    }
-
-    // Mostrar lista según la pestaña seleccionada
-    function mostrarLista() {
-      let numerosFiltrados = [];
-
-      switch(tabActual) {
-        case 'pagados':
-          numerosFiltrados = todosLosNumeros.filter(n => n.estado === 'pagado');
-          break;
-        case 'reservados':
-          numerosFiltrados = todosLosNumeros.filter(n => n.estado === 'reservado');
-          break;
-        case 'todos':
-          numerosFiltrados = todosLosNumeros;
-          break;
-        case 'disponibles':
-          mostrarNumerosDisponibles();
-          return;
-      }
-
-      const lista = document.getElementById('lista-numeros');
-      
-      if (numerosFiltrados.length === 0) {
-        lista.innerHTML = `
-          <div class="empty-state">
-            📭 No hay números ${tabActual === 'todos' ? '' : tabActual}
-          </div>
-        `;
-        return;
-      }
-
-      lista.innerHTML = numerosFiltrados.map(numero => `
-        <div class="numero-item ${numero.estado}">
-          <div class="numero-header">
-            <div class="numero">Número ${numero.numero}</div>
-            <div class="estado ${numero.estado}">
-              ${numero.estado === 'pagado' ? '✅ Pagado' : '⏰ Reservado'}
-            </div>
-          </div>
-          <div class="info">
-            <strong>${numero.nombre || 'Sin nombre'}</strong><br>
-            📞 ${numero.telefono || 'Sin teléfono'}<br>
-            💳 ${numero.metodo_pago || 'No especificado'}
-          </div>
-          <div class="fecha">${numero.fecha}</div>
-          <div class="actions">
-            <button class="btn btn-reactivar" onclick="reactivarNumero('${numero.id}', '${numero.numero}', '${numero.nombre || ''}')">
-              🔄 Reactivar Número
-            </button>
+    return `
+      <div class="numero-item ${numero.estado}">
+        <div class="numero-header">
+          <div class="numero">Número ${numero.numero}</div>
+          <div class="estado ${numero.estado}">
+            ${numero.estado === 'pagado' ? '✅ Pagado' : '⏰ Reservado'}
           </div>
         </div>
-      `).join('');
-    }
+        <div class="info">
+          <strong>${numero.nombre || 'Sin nombre'}</strong><br>
+          📞 ${numero.telefono || 'Sin teléfono'}<br>
+          💳 ${numero.metodo_pago || 'No especificado'}
+        </div>
+        <div class="fecha">${numero.fecha}</div>
+        ${botones}
+      </div>
+    `;
+  }).join('');
+}
 
-    // Mostrar números disponibles
-    function mostrarNumerosDisponibles() {
-      const numerosOcupados = todosLosNumeros.map(n => n.numero);
-      const lista = document.getElementById('lista-numeros');
-      
-      let contenido = '<h3 style="margin-bottom: 15px; color: #c62828; text-align: center;">Números Disponibles</h3>';
-      contenido += '<div class="numbers-grid">';
-      
-      for (let i = 0; i < 100; i++) {
-        const num = i.toString().padStart(2, '0');
-        const disponible = !numerosOcupados.includes(num);
-        
-        contenido += `
-          <div class="grid-number ${disponible ? 'disponible' : 'ocupado'}">
-            ${num}
-          </div>
-        `;
-      }
-      
-      contenido += '</div>';
-      lista.innerHTML = contenido;
-    }
+// Mostrar números disponibles
+function mostrarNumerosDisponibles() {
+  const numerosOcupados = todosLosNumeros.map(n => n.numero);
+  const lista = document.getElementById('lista-numeros');
+  
+  let contenido = '<h3 style="margin-bottom: 15px; color: #c62828; text-align: center;">Números Disponibles</h3>';
+  contenido += '<div class="numbers-grid">';
+  
+  for (let i = 0; i < 100; i++) {
+    const num = i.toString().padStart(2, '0');
+    const disponible = !numerosOcupados.includes(num);
+    
+    contenido += `
+      <div class="grid-number ${disponible ? 'disponible' : 'ocupado'}">
+        ${num}
+      </div>
+    `;
+  }
+  
+  contenido += '</div>';
+  lista.innerHTML = contenido;
+}
 
-    // Filtrar lista
-    function filtrarLista() {
-      const searchTerm = document.getElementById('search').value.toLowerCase();
+// Filtrar lista
+function filtrarLista() {
+  const searchTerm = document.getElementById('search').value.toLowerCase();
+  
+  if (tabActual === 'disponibles') return;
+  
+  const items = document.querySelectorAll('.numero-item');
+  items.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(searchTerm) ? 'block' : 'none';
+  });
+}
+
+// Cambiar pestaña
+function mostrarTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[onclick="mostrarTab('${tab}')"]`).classList.add('active');
+  tabActual = tab;
+  mostrarLista();
+}
+
+// NUEVA FUNCIÓN: Marcar como Pagado
+async function marcarComoPagado(docId, numero, nombre, metodoPagoActual) {
+  // Pedir confirmación del método de pago
+  const metodoPago = prompt(
+    `💰 Marcar número ${numero} como PAGADO\n\n` +
+    `Cliente: ${nombre || 'Sin nombre'}\n\n` +
+    `Selecciona método de pago:\n` +
+    `1 - Efectivo\n` +
+    `2 - Nequi\n` +
+    `3 - DaviPlata\n\n` +
+    `Método actual: ${metodoPagoActual || 'No especificado'}`,
+    metodoPagoActual || 'efectivo'
+  );
+
+  if (!metodoPago) {
+    return; // Usuario canceló
+  }
+
+  // Mapear método de pago
+  let metodoPagoFinal = metodoPago.toLowerCase();
+  if (metodoPago === '1') metodoPagoFinal = 'efectivo';
+  if (metodoPago === '2') metodoPagoFinal = 'nequi';
+  if (metodoPago === '3') metodoPagoFinal = 'daviplata';
+
+  if (confirm(`¿Confirmas que el número ${numero} ha sido PAGADO?\n\n` +
+             `Cliente: ${nombre || 'Sin nombre'}\n` +
+             `Método: ${metodoPagoFinal}\n\n` +
+             `✅ Se cambiará a estado PAGADO\n` +
+             `✅ Se actualizará en Firebase`)) {
+    try {
+      console.log(`💰 Marcando como pagado: ${numero}`);
       
-      if (tabActual === 'disponibles') return;
-      
-      const items = document.querySelectorAll('.numero-item');
-      items.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(searchTerm) ? 'block' : 'none';
+      // 1. ACTUALIZAR en colección "numeros"
+      await db.collection('numeros').doc(docId).update({
+        estado: 'pagado',
+        metodo_pago: metodoPagoFinal,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
-    }
-
-    // Cambiar pestaña
-    function mostrarTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelector(`.tab[onclick="mostrarTab('${tab}')"]`).classList.add('active');
-      tabActual = tab;
-      mostrarLista();
-    }
-
-    // Reactivar número - VERSIÓN COMPLETAMENTE CORREGIDA
-    async function reactivarNumero(docId, numero, nombre) {
-      if (confirm(`¿Estás segura de reactivar el número ${numero}?\n\nCliente: ${nombre || 'Sin nombre'}\n\n✅ Se eliminará de "numeros" y "compradores"\n✅ Volverá a estar DISPONIBLE en la rifa`)) {
-        try {
-          console.log(`🔄 Iniciando reactivación del número ${numero}`);
-          
-          // 1. ELIMINAR de la colección "numeros"
-          await db.collection('numeros').doc(docId).delete();
-          console.log(`✅ Eliminado de "numeros": ${numero}`);
-          
-          // 2. BUSCAR y ELIMINAR de la colección "compradores"
-          const compradoresSnapshot = await db.collection('compradores')
-            .where('numeros', 'array-contains', numero)
-            .get();
-          
-          let compradoresEliminados = 0;
-          const batch = db.batch();
-          
-          compradoresSnapshot.forEach(doc => {
-            const data = doc.data();
-            // Verificar que este documento contenga exactamente este número
-            if (data.numeros && data.numeros.includes(numero)) {
-              batch.delete(doc.ref);
-              compradoresEliminados++;
-              console.log(`✅ Eliminando de "compradores": ${doc.id}`);
-            }
-          });
-          
-          if (compradoresEliminados > 0) {
-            await batch.commit();
-            console.log(`✅ Eliminados ${compradoresEliminados} registros de "compradores"`);
-          }
-          
-          // 3. ACTUALIZAR interfaz local
-          const index = todosLosNumeros.findIndex(n => n.id === docId);
-          if (index !== -1) {
-            todosLosNumeros.splice(index, 1);
-          }
-          
-          // 4. ACTUALIZAR estadísticas
-          actualizarEstadisticas();
-          
-          // 5. MOSTRAR mensaje de éxito
-          let mensaje = `✅ Número ${numero} reactivado correctamente`;
-          if (compradoresEliminados > 0) {
-            mensaje += `\n🗑️ Eliminado de ${compradoresEliminados} registro(s) en compradores`;
-          }
-          alert(mensaje);
-          
-          // 6. RECARGAR lista
-          mostrarLista();
-          
-          console.log(`🎯 Reactivación completada para número ${numero}`);
-          
-        } catch (error) {
-          console.error('❌ Error en reactivación:', error);
-          alert('❌ Error reactivando número: ' + error.message);
-        }
-      }
-    }
-
-    // Inicializar
-    document.addEventListener('DOMContentLoaded', function() {
-      hacerPaginaDesplazable();
-      mejorarScrollContenido();
-      cargarDatos();
-      setInterval(cargarDatos, 30000);
-    });
-
-    // Pull to refresh mejorado
-    let touchStartY = 0;
-    let isScrolling = false;
-
-    document.addEventListener('touchstart', e => {
-      touchStartY = e.touches[0].clientY;
-      isScrolling = false;
-    });
-
-    document.addEventListener('touchmove', e => {
-      isScrolling = true;
-    });
-
-    document.addEventListener('touchend', e => {
-      if (!isScrolling) return;
+      console.log(`✅ Actualizado en "numeros": ${numero} → PAGADO`);
       
-      const touchEndY = e.changedTouches[0].clientY;
-      if (window.scrollY === 0 && touchStartY - touchEndY > 100) {
-        cargarDatos();
+      // 2. ACTUALIZAR en colección "compradores"
+      const compradoresSnapshot = await db.collection('compradores')
+        .where('numeros', 'array-contains', numero)
+        .get();
+      
+      let compradoresActualizados = 0;
+      const batch = db.batch();
+      
+      compradoresSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.numeros && data.numeros.includes(numero)) {
+          batch.update(doc.ref, {
+            estado: 'pagado',
+            metodo_pago: metodoPagoFinal,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          compradoresActualizados++;
+          console.log(`✅ Actualizando en "compradores": ${doc.id}`);
+        }
+      });
+      
+      if (compradoresActualizados > 0) {
+        await batch.commit();
+        console.log(`✅ Actualizados ${compradoresActualizados} registros en "compradores"`);
       }
-    });
+      
+      // 3. ACTUALIZAR interfaz local
+      const numeroIndex = todosLosNumeros.findIndex(n => n.id === docId);
+      if (numeroIndex !== -1) {
+        todosLosNumeros[numeroIndex].estado = 'pagado';
+        todosLosNumeros[numeroIndex].metodo_pago = metodoPagoFinal;
+        todosLosNumeros[numeroIndex].fecha = new Date().toLocaleString();
+      }
+      
+      // 4. ACTUALIZAR estadísticas
+      actualizarEstadisticas();
+      
+      // 5. MOSTRAR mensaje de éxito
+      let mensaje = `✅ Número ${numero} marcado como PAGADO\n`;
+      mensaje += `💳 Método: ${metodoPagoFinal}\n`;
+      if (compradoresActualizados > 0) {
+        mensaje += `📊 Actualizado en ${compradoresActualizados} registro(s)`;
+      }
+      alert(mensaje);
+      
+      // 6. RECARGAR lista
+      mostrarLista();
+      
+      console.log(`🎯 Pago registrado correctamente para número ${numero}`);
+      
+    } catch (error) {
+      console.error('❌ Error marcando como pagado:', error);
+      alert('❌ Error marcando como pagado: ' + error.message);
+    }
+  }
+}
+
+// Reactivar número
+async function reactivarNumero(docId, numero, nombre) {
+  if (confirm(`¿Estás segura de reactivar el número ${numero}?\n\nCliente: ${nombre || 'Sin nombre'}\n\n✅ Se eliminará de "numeros" y "compradores"\n✅ Volverá a estar DISPONIBLE en la rifa`)) {
+    try {
+      console.log(`🔄 Iniciando reactivación del número ${numero}`);
+      
+      // 1. ELIMINAR de la colección "numeros"
+      await db.collection('numeros').doc(docId).delete();
+      console.log(`✅ Eliminado de "numeros": ${numero}`);
+      
+      // 2. BUSCAR y ELIMINAR de la colección "compradores"
+      const compradoresSnapshot = await db.collection('compradores')
+        .where('numeros', 'array-contains', numero)
+        .get();
+      
+      let compradoresEliminados = 0;
+      const batch = db.batch();
+      
+      compradoresSnapshot.forEach(doc => {
+        const data = doc.data();
+        // Verificar que este documento contenga exactamente este número
+        if (data.numeros && data.numeros.includes(numero)) {
+          batch.delete(doc.ref);
+          compradoresEliminados++;
+          console.log(`✅ Eliminando de "compradores": ${doc.id}`);
+        }
+      });
+      
+      if (compradoresEliminados > 0) {
+        await batch.commit();
+        console.log(`✅ Eliminados ${compradoresEliminados} registros de "compradores"`);
+      }
+      
+      // 3. ACTUALIZAR interfaz local
+      const index = todosLosNumeros.findIndex(n => n.id === docId);
+      if (index !== -1) {
+        todosLosNumeros.splice(index, 1);
+      }
+      
+      // 4. ACTUALIZAR estadísticas
+      actualizarEstadisticas();
+      
+      // 5. MOSTRAR mensaje de éxito
+      let mensaje = `✅ Número ${numero} reactivado correctamente`;
+      if (compradoresEliminados > 0) {
+        mensaje += `\n🗑️ Eliminado de ${compradoresEliminados} registro(s) en compradores`;
+      }
+      alert(mensaje);
+      
+      // 6. RECARGAR lista
+      mostrarLista();
+      
+      console.log(`🎯 Reactivación completada para número ${numero}`);
+      
+    } catch (error) {
+      console.error('❌ Error en reactivación:', error);
+      alert('❌ Error reactivando número: ' + error.message);
+    }
+  }
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', function() {
+  hacerPaginaDesplazable();
+  mejorarScrollContenido();
+  cargarDatos();
+  setInterval(cargarDatos, 30000);
+});
+
+// Pull to refresh mejorado
+let touchStartY = 0;
+let isScrolling = false;
+
+document.addEventListener('touchstart', e => {
+  touchStartY = e.touches[0].clientY;
+  isScrolling = false;
+});
+
+document.addEventListener('touchmove', e => {
+  isScrolling = true;
+});
+
+document.addEventListener('touchend', e => {
+  if (!isScrolling) return;
+  
+  const touchEndY = e.changedTouches[0].clientY;
+  if (window.scrollY === 0 && touchStartY - touchEndY > 100) {
+    cargarDatos();
+  }
+});
   </script>
 </body>
 </html>
