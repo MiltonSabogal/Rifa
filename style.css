@@ -131,36 +131,38 @@ header::before {
   margin-bottom: 20px;
 }
 
-/* Grid de Números - MEJORADO */
+/* Grid de Números - CORREGIDO PARA MÓVILES */
 .numbers-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 8px;
+  gap: 6px;
   background: linear-gradient(135deg, #e8f5e8, #ffffff);
-  padding: 20px;
+  padding: 15px;
   border-radius: 15px;
   border: 3px solid #2e7d32;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   min-height: 400px;
+  width: 100%;
 }
 
 .number {
-  padding: 15px 5px;
+  padding: 8px 2px;
   text-align: center;
   border: 2px solid #c62828;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
-  font-size: 1em;
+  font-size: 0.85em;
   position: relative;
   overflow: hidden;
-  min-height: 60px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 1;
   flex-direction: column;
+  width: 100%;
+  height: auto;
 }
 
 .number::after {
@@ -212,20 +214,22 @@ header::before {
   background: linear-gradient(135deg, #cce7ff, #99ceff);
   color: #004085;
   border-color: #007bff;
-  transform: scale(1.05);
+  transform: scale(1.02);
   animation: pulse 1.5s infinite;
+  z-index: 1;
 }
 
 .number small {
-  font-size: 0.7em;
-  margin-top: 2px;
+  font-size: 0.6em;
+  margin-top: 1px;
   display: block;
+  line-height: 1;
 }
 
 @keyframes pulse {
-  0% { transform: scale(1.05); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1.05); }
+  0% { transform: scale(1.02); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1.02); }
 }
 
 /* Formulario */
@@ -430,6 +434,46 @@ header::before {
   padding-right: 30px;
 }
 
+/* Opciones de confirmación */
+.opciones-confirmacion {
+  margin: 20px 0;
+}
+
+.opcion-confirmacion {
+  background: white;
+  border: 2px solid #2e7d32;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 10px 0;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.opcion-confirmacion:hover {
+  background: #e8f5e8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.opcion-confirmacion.selected {
+  background: #2e7d32;
+  color: white;
+  border-color: #1b5e20;
+  transform: translateY(-2px);
+}
+
+.opcion-confirmacion h3 {
+  margin-bottom: 8px;
+  font-size: 1.2em;
+}
+
+.opcion-confirmacion p {
+  margin: 0;
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+/* Métodos de pago */
 .metodos-pago {
   margin: 20px 0;
 }
@@ -463,45 +507,6 @@ header::before {
 }
 
 .metodo-option p {
-  margin: 0;
-  font-size: 0.9em;
-  opacity: 0.9;
-}
-
-/* Opciones de pago en efectivo */
-.opciones-efectivo {
-  margin: 20px 0;
-}
-
-.opcion-pago {
-  background: white;
-  border: 2px solid #2e7d32;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 10px 0;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.opcion-pago:hover {
-  background: #e8f5e8;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.opcion-pago.selected {
-  background: #2e7d32;
-  color: white;
-  border-color: #1b5e20;
-  transform: translateY(-2px);
-}
-
-.opcion-pago h3 {
-  margin-bottom: 8px;
-  font-size: 1.2em;
-}
-
-.opcion-pago p {
   margin: 0;
   font-size: 0.9em;
   opacity: 0.9;
@@ -575,6 +580,10 @@ header::before {
   color: #c62828;
   font-weight: 600;
   grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
 }
 
 .spinner-small {
@@ -635,23 +644,25 @@ header::before {
   background: linear-gradient(to right, #c62828, #d32f2f);
 }
 
-/* Estilos específicos para móviles */
+/* MEJORAS ESPECÍFICAS PARA MÓVILES - CORREGIDO */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
-    padding: 15px;
+    padding: 10px;
     gap: 15px;
   }
   
   .numbers-grid {
     order: 2;
     grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-    padding: 15px;
+    gap: 5px;
+    padding: 12px;
+    min-height: 300px;
   }
   
   .formulario {
     order: 1;
+    padding: 20px;
   }
   
   .logo-titulo h1 {
@@ -664,9 +675,14 @@ header::before {
   }
   
   .number {
-    padding: 12px 5px;
-    font-size: 0.9em;
-    min-height: 50px;
+    padding: 10px 3px;
+    font-size: 0.8em;
+    min-height: 45px;
+    border-radius: 6px;
+  }
+  
+  .number small {
+    font-size: 0.55em;
   }
 
   .modal-content {
@@ -681,12 +697,12 @@ header::before {
     margin-bottom: 15px;
   }
   
-  .metodo-option, .opcion-pago {
+  .opcion-confirmacion, .metodo-option {
     padding: 12px;
     margin: 8px 0;
   }
   
-  .metodo-option h3, .opcion-pago h3 {
+  .opcion-confirmacion h3, .metodo-option h3 {
     font-size: 1.1em;
   }
   
@@ -709,6 +725,63 @@ header::before {
   
   .peluche-card {
     max-width: 100%;
+  }
+}
+
+/* Para pantallas muy pequeñas (menos de 480px) */
+@media (max-width: 480px) {
+  .numbers-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    padding: 10px;
+  }
+  
+  .number {
+    padding: 8px 2px;
+    font-size: 0.75em;
+    min-height: 40px;
+    border-width: 1px;
+  }
+  
+  .number small {
+    font-size: 0.5em;
+  }
+  
+  header {
+    padding: 8px 12px;
+  }
+  
+  .logo-titulo h1 {
+    font-size: 1.3em;
+    margin: 5px 0;
+  }
+  
+  .sorteo-info {
+    font-size: 0.8em;
+    padding: 6px;
+    margin-top: 5px;
+  }
+  
+  .formulario input {
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+}
+
+/* Para pantallas extremadamente pequeñas (menos de 360px) */
+@media (max-width: 360px) {
+  .numbers-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3px;
+  }
+  
+  .number {
+    padding: 6px 1px;
+    font-size: 0.7em;
+    min-height: 35px;
+  }
+  
+  .number small {
+    font-size: 0.45em;
   }
 }
 
@@ -759,27 +832,20 @@ header::before {
   }
 }
 
-/* Para pantallas muy pequeñas */
-@media (max-width: 480px) {
-  .numbers-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  .number {
-    padding: 10px 3px;
-    font-size: 0.8em;
-    min-height: 45px;
-  }
-  
-  header {
-    padding: 10px 15px;
-  }
-  
-  .logo-titulo h1 {
-    font-size: 1.3em;
-  }
-  
-  .sorteo-info {
-    font-size: 0.9em;
-  }
+/* Estilos para mejorar experiencia táctil */
+.es-movil .numbers-grid {
+  gap: 4px;
+}
+
+.es-movil .number {
+  border-width: 1.5px;
+}
+
+.es-movil .number:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+.es-movil .container {
+  padding: 8px;
 }
