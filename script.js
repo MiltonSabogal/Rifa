@@ -108,25 +108,72 @@ function crearElementoNumero(num, estado, textoExtra = '') {
     div.innerText = num;
     
     div.addEventListener('click', () => {
-      if (!selectedNumbers.includes(num) && selectedNumbers.length >= 10) {
-        showNotification('Puedes seleccionar máximo 10 números', false);
-        return;
-      }
+      // VERIFICAR EN TIEMPO REAL si el número sigue disponible
+      verificarDisponibilidadNumero(num).then(disponible => {
+        if (!disponible) {
+          showNotification(`El número ${num} ya no está disponible. Actualizando...`, false);
+          // Actualizar la interfaz
+          div.classList.remove('disponible', 'selected');
+          div.classList.add('reservado');
+          div.innerHTML = `${num}<br><small>Ocupado</small>`;
+          div.style.pointerEvents = 'none';
+          
+          // Remover de seleccionados si estaba seleccionado
+          selectedNumbers = selectedNumbers.filter(n => n !== num);
+          inputNumero.value = selectedNumbers.join(', ');
+          totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+          
+          return;
+        }
 
-      if (selectedNumbers.includes(num)) {
-        selectedNumbers = selectedNumbers.filter(n => n !== num);
-        div.classList.remove('selected');
-      } else {
-        selectedNumbers.push(num);
-        div.classList.add('selected');
-      }
+        // Si está disponible, proceder con la selección
+        if (!selectedNumbers.includes(num) && selectedNumbers.length >= 10) {
+          showNotification('Puedes seleccionar máximo 10 números', false);
+          return;
+        }
 
-      inputNumero.value = selectedNumbers.join(', ');
-      totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+        if (selectedNumbers.includes(num)) {
+          selectedNumbers = selectedNumbers.filter(n => n !== num);
+          div.classList.remove('selected');
+        } else {
+          selectedNumbers.push(num);
+          div.classList.add('selected');
+        }
+
+        inputNumero.value = selectedNumbers.join(', ');
+        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+      });
     });
   }
 
   container.appendChild(div);
+}
+
+// FUNCIÓN NUEVA: Verificar disponibilidad en tiempo real
+function verificarDisponibilidadNumero(numero) {
+  return db.collection('numeros')
+    .where('numero', '==', numero)
+    .limit(1)
+    .get()
+    .then(snapshot => {
+      return snapshot.empty; // true si está disponible, false si ya existe
+    })
+    .catch(error => {
+      console.error('Error verificando disponibilidad:', error);
+      return false; // En caso de error, asumir que no está disponible
+    });
+}
+
+// FUNCIÓN NUEVA: Verificar TODOS los números seleccionados antes de procesar
+function verificarDisponibilidadNumerosSeleccionados() {
+  const verificaciones = selectedNumbers.map(num => 
+    verificarDisponibilidadNumero(num).then(disponible => ({ num, disponible }))
+  );
+
+  return Promise.all(verificaciones).then(results => {
+    const noDisponibles = results.filter(result => !result.disponible).map(result => result.num);
+    return noDisponibles;
+  });
 }
 
 // Función para cargar números ocupados desde Firestore
@@ -227,15 +274,40 @@ function inicializarEventListeners() {
       return;
     }
     
-    // Guardar datos de la reserva
-    currentReservationData = {
-      numero: selectedNumbers.join(', '),
-      nombre: nombre,
-      telefono: telefono
-    };
+    // VERIFICAR DISPONIBILIDAD ANTES DE CONTINUAR
+    showNotification('Verificando disponibilidad de números...', true);
     
-    // Mostrar modal de confirmación de pago
-    mostrarModalConfirmacionPago();
+    verificarDisponibilidadNumerosSeleccionados().then(numerosNoDisponibles => {
+      if (numerosNoDisponibles.length > 0) {
+        showNotification(`Los números ${numerosNoDisponibles.join(', ')} ya no están disponibles. Por favor selecciona otros.`, false);
+        
+        // Actualizar la interfaz
+        numerosNoDisponibles.forEach(num => {
+          const div = document.querySelector(`.number[data-num="${num}"]`);
+          if (div) {
+            div.classList.remove('disponible', 'selected');
+            div.classList.add('reservado');
+            div.innerHTML = `${num}<br><small>Ocupado</small>`;
+            div.style.pointerEvents = 'none';
+          }
+          selectedNumbers = selectedNumbers.filter(n => n !== num);
+        });
+        
+        inputNumero.value = selectedNumbers.join(', ');
+        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+        return;
+      }
+      
+      // Si todos están disponibles, continuar
+      currentReservationData = {
+        numero: selectedNumbers.join(', '),
+        nombre: nombre,
+        telefono: telefono
+      };
+      
+      // Mostrar modal de confirmación de pago
+      mostrarModalConfirmacionPago();
+    });
   });
 
   // Seleccionar tipo de pago (Voy a pagar ahora / Pagaré después)
@@ -299,11 +371,36 @@ function inicializarEventListeners() {
       return;
     }
     
-    // Para "Voy a pagar ahora", marcar como pagado
-    currentReservationData.estado = 'pagado';
-    currentReservationData.metodo_pago = selectedMetodo;
-    console.log("Procesando pago inmediato con método:", selectedMetodo);
-    guardarReservaEnFirebase();
+    // VERIFICAR DISPONIBILIDAD UNA VEZ MÁS ANTES DE CONFIRMAR
+    showNotification('Verificando última disponibilidad...', true);
+    
+    verificarDisponibilidadNumerosSeleccionados().then(numerosNoDisponibles => {
+      if (numerosNoDisponibles.length > 0) {
+        showNotification(`Los números ${numerosNoDisponibles.join(', ')} ya no están disponibles. Por favor selecciona otros.`, false);
+        
+        // Actualizar la interfaz
+        numerosNoDisponibles.forEach(num => {
+          const div = document.querySelector(`.number[data-num="${num}"]`);
+          if (div) {
+            div.classList.remove('disponible', 'selected');
+            div.classList.add('reservado');
+            div.innerHTML = `${num}<br><small>Ocupado</small>`;
+            div.style.pointerEvents = 'none';
+          }
+          selectedNumbers = selectedNumbers.filter(n => n !== num);
+        });
+        
+        inputNumero.value = selectedNumbers.join(', ');
+        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+        return;
+      }
+      
+      // Si todos están disponibles, proceder con el pago
+      currentReservationData.estado = 'pagado';
+      currentReservationData.metodo_pago = selectedMetodo;
+      console.log("Procesando pago inmediato con método:", selectedMetodo);
+      guardarReservaEnFirebase();
+    });
   });
 
   // Cerrar modales
@@ -334,7 +431,7 @@ function guardarReservaEnFirebase() {
   submitText.textContent = 'Procesando...';
   submitSpinner.style.display = 'inline-block';
 
-  // Verificar disponibilidad de números
+  // VERIFICACIÓN FINAL - MÁS ROBUSTA
   const verificaciones = selectedNumbers.map(num => 
     db.collection('numeros')
       .where('numero', '==', num)
@@ -355,8 +452,9 @@ function guardarReservaEnFirebase() {
           const div = document.querySelector(`.number[data-num="${num}"]`);
           if (div) {
             div.classList.add('ocupado');
-            div.classList.remove('selected');
+            div.classList.remove('selected', 'disponible');
             div.style.pointerEvents = 'none';
+            div.innerHTML = `${num}<br><small>Ocupado</small>`;
           }
           selectedNumbers = selectedNumbers.filter(n => n !== num);
         });
