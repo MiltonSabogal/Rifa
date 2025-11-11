@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rifa Navideña - ¡Gánate un Hermoso Peluche!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,7 +75,7 @@
   <!-- Modal de Confirmación de Pago -->
   <div id="modalConfirmacionPago" class="modal">
     <div class="modal-content">
-      <span class="close">&times;</span>
+      <span class="close" id="closeConfirmacion">&times;</span>
       <h2>💳 Confirmar Pago</h2>
       <div class="opciones-confirmacion">
         <div class="opcion-confirmacion" data-tipo="pago-inmediato">
@@ -94,7 +94,7 @@
   <!-- Modal de Método de Pago (solo para "Voy a pagar ahora") -->
   <div id="modalPago" class="modal">
     <div class="modal-content">
-      <span class="close">&times;</span>
+      <span class="close" id="closePago">&times;</span>
       <h2>💳 Método de Pago</h2>
       <div class="metodos-pago">
         <div class="metodo-option" data-metodo="efectivo">
