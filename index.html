@@ -3,77 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rifa Navideña MISAGA</title>
+  <title>Rifa Navideña - ¡Gánate un Hermoso Peluche!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
   <header>
     <div class="logo-titulo">
-      <img src="img/logo-misaga.png" alt="Logo MISAGA" />
-      <h1>Rifa Navideña - ¡Gánate Hermosos Peluches!</h1>
-      <div class="sorteo-info">Valor: $10.000 | Pagas por Daviplata, Nequi o Transfiya: 3227605790 | Sorteo: 6 de Diciembre con Lotería de Boyacá</div>
+      <h1>🎄 Rifa Navideña 🎅</h1>
+      <div class="sorteo-info">¡Gánate este Hermoso Peluche! | Valor: $10.000 | Sorteo: 6 de Diciembre</div>
     </div>
   </header>
-
+  
   <main class="container">
     <section class="peluche-section">
       <div class="peluche-card">
         <div class="peluche-img">
           <img src="img/peluche.jpg" alt="Peluche Navideño" onerror="this.style.display='none'">
-          <div class="placeholder-img">📸 Foto del Peluche</div>
+          <div class="placeholder-img">🧸</div>
         </div>
         <h3>¡Perfecto para abrazar en Navidad! 🧸</h3>
         <p>Un suave y adorable peluche que te acompañará en estas fiestas</p>
       </div>
     </section>
-
-    <section class="numbers" id="numeros-container">
-      <div class="spinner" id="spinner"></div>
+    
+    <section class="numbers-section">
+      <div class="numbers-grid" id="numeros-container">
+        <div class="spinner" id="spinner">Cargando números...</div>
+      </div>
     </section>
-
-    <aside class="formulario" id="formulario-container">
-      <h2>Participa y Apóyame</h2>
+    
+    <aside class="formulario">
+      <h2>🎅 Participa Aquí</h2>
       <form id="form-rifa">
         <label for="numero">Números seleccionados:</label>
         <input type="text" id="numero" name="numero" readonly required>
-
+        
         <label for="nombre">Nombre completo:</label>
         <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
-
+        
         <label for="telefono">Teléfono:</label>
-        <input type="tel" id="telefono" name="telefono" required placeholder="Tu número de teléfono">
-
+        <input type="text" id="telefono" name="telefono" required placeholder="Tu número de teléfono">
+        
         <button type="submit" id="submit-btn">
           <span id="submit-text">🎄 Reservar números</span>
           <div class="spinner-small" id="submit-spinner" style="display: none;"></div>
         </button>
         <p id="total-pago"><strong>Total a pagar:</strong> $0</p>
-
+        
         <div class="contacto-info">
           <h3>📞 Contacto</h3>
           <p><strong>Edith Malagon</strong></p>
           <p>Teléfono: <strong>3227605790</strong></p>
         </div>
-
+        
         <div class="mensaje-final">
-          <p>Más que un aporte: es un abrazo en forma de oportunidad. ¡Agradezco tu generosidad infinita!</p>
-          <p>¡Participa! Tu apoyo es mi impulso ✨</p>
-          <p>🔢 <strong>Mecánica:</strong> Elige un número (00 al 99).<br>
-             🏆 <strong>Ganador:</strong> Quien coincida con las 2 últimas cifras del sorteo de la Lotería de Boyacá del 6 de diciembre.<br>
-             🙏 <strong>¿Por qué?</strong> Tu apoyo me impulsa mientras busco nuevas oportunidades laborales.<br>
-             ❤️ <strong>¡Cada número cuenta!</strong></p>
-          <p><em>"No te niegues a hacer el bien a quien es debido, cuando tuvieres poder para hacerlo."<br>(Proverbios 3:27)</em></p>
+          <p>✨ En esta Navidad, tu apoyo es el regalo más especial.</p>
+          <p>🔢 <strong>Elige un número del 00 al 99</strong><br>
+             🏆 <strong>Ganador:</strong> Coincidencia con las 2 últimas cifras del sorteo de la Lotería de Boyacá del 6 de diciembre<br>
+             ❤️ <strong>¡Cada número acerca la magia de la Navidad!</strong></p>
         </div>
       </form>
     </aside>
   </main>
-
+  
   <!-- Modal de Método de Pago -->
   <div id="modalPago" class="modal">
     <div class="modal-content">
@@ -103,10 +101,8 @@
       <button id="confirmarReserva" class="btn-confirmar">✅ Confirmar Reserva</button>
     </div>
   </div>
-
+  
   <div id="notification" class="notification"></div>
-  <div id="connection-status" class="connection-status"></div>
-
   <script src="script.js"></script>
 </body>
 </html>
