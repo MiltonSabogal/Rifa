@@ -21,15 +21,11 @@
       color: #333;
       line-height: 1.6;
       padding: 15px;
-      overflow: hidden; /* Previene scroll del body */
     }
 
     .container {
       max-width: 100%;
       margin: 0 auto;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     header {
@@ -39,7 +35,6 @@
       text-align: center;
       margin-bottom: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      flex-shrink: 0;
     }
 
     h1 {
@@ -53,7 +48,6 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       margin-bottom: 15px;
-      flex-shrink: 0;
     }
 
     .stat-card {
@@ -83,7 +77,6 @@
       margin-bottom: 12px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      flex-shrink: 0;
     }
 
     .tab {
@@ -112,7 +105,6 @@
       margin-bottom: 12px;
       font-family: 'Poppins', sans-serif;
       font-size: 1em;
-      flex-shrink: 0;
     }
 
     .search-bar:focus {
@@ -125,14 +117,8 @@
       border-radius: 15px;
       padding: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      height: 50vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      flex-grow: 1;
-    }
-
-    .numbers-container {
-      height: 100%;
+      min-height: 300px;
+      max-height: 60vh;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -291,6 +277,10 @@
         padding: 10px 8px;
         font-size: 0.8em;
       }
+      
+      .content {
+        max-height: 50vh;
+      }
     }
 
     /* Scrollbar personalizado */
@@ -306,6 +296,13 @@
     .content::-webkit-scrollbar-thumb {
       background: #c62828;
       border-radius: 10px;
+    }
+
+    /* Para pantallas muy altas */
+    @media (min-height: 800px) {
+      .content {
+        max-height: 65vh;
+      }
     }
   </style>
 </head>
@@ -345,10 +342,8 @@
     <input type="text" class="search-bar" id="search" placeholder="🔍 Buscar por nombre, teléfono o número..." onkeyup="filtrarLista()">
 
     <div class="content">
-      <div class="numbers-container">
-        <div id="lista-numeros" class="loading">
-          Cargando datos...
-        </div>
+      <div id="lista-numeros" class="loading">
+        Cargando datos...
       </div>
     </div>
   </div>
@@ -377,9 +372,25 @@
     let todosLosNumeros = [];
     let tabActual = 'pagados';
 
-    // Función para mejorar el scroll en móviles
-    function inicializarScrollMovil() {
+    // Función para hacer toda la página desplazable
+    function hacerPaginaDesplazable() {
+      // Permitir scroll en toda la página
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+      
+      // Prevenir el comportamiento de pull-to-refresh nativo
+      document.addEventListener('touchmove', function(e) {
+        // Permitir scroll normal en toda la página
+      }, { passive: true });
+    }
+
+    // Función para mejorar el scroll del contenido
+    function mejorarScrollContenido() {
       const content = document.querySelector('.content');
+      
+      content.addEventListener('touchstart', function(e) {
+        // Permitir scroll normal
+      }, { passive: true });
       
       content.addEventListener('touchmove', function(e) {
         // Permitir scroll normal
@@ -558,20 +569,31 @@
 
     // Inicializar
     document.addEventListener('DOMContentLoaded', function() {
-      inicializarScrollMovil();
+      hacerPaginaDesplazable();
+      mejorarScrollContenido();
       cargarDatos();
       setInterval(cargarDatos, 30000);
     });
 
-    // Pull to refresh
+    // Pull to refresh mejorado
     let touchStartY = 0;
+    let isScrolling = false;
+
     document.addEventListener('touchstart', e => {
       touchStartY = e.touches[0].clientY;
+      isScrolling = false;
+    });
+
+    document.addEventListener('touchmove', e => {
+      isScrolling = true;
     });
 
     document.addEventListener('touchend', e => {
+      if (!isScrolling) return;
+      
       const touchEndY = e.changedTouches[0].clientY;
-      if (touchStartY - touchEndY > 100) {
+      // Solo hacer refresh si el scroll está en el top y se hace pull down
+      if (window.scrollY === 0 && touchStartY - touchEndY > 100) {
         cargarDatos();
       }
     });
