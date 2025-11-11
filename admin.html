@@ -374,13 +374,10 @@
 
     // Función para hacer toda la página desplazable
     function hacerPaginaDesplazable() {
-      // Permitir scroll en toda la página
       document.body.style.overflow = 'auto';
       document.documentElement.style.overflow = 'auto';
       
-      // Prevenir el comportamiento de pull-to-refresh nativo
       document.addEventListener('touchmove', function(e) {
-        // Permitir scroll normal en toda la página
       }, { passive: true });
     }
 
@@ -389,12 +386,31 @@
       const content = document.querySelector('.content');
       
       content.addEventListener('touchstart', function(e) {
-        // Permitir scroll normal
       }, { passive: true });
       
       content.addEventListener('touchmove', function(e) {
-        // Permitir scroll normal
       }, { passive: true });
+    }
+
+    // Función para actualizar estadísticas
+    function actualizarEstadisticas() {
+      let pagados = 0;
+      let reservados = 0;
+      let recaudado = 0;
+
+      todosLosNumeros.forEach(numero => {
+        if (numero.estado === 'pagado') {
+          pagados++;
+          recaudado += 10000;
+        } else if (numero.estado === 'reservado') {
+          reservados++;
+        }
+      });
+
+      document.getElementById('total-pagados').textContent = pagados;
+      document.getElementById('total-reservados').textContent = reservados;
+      document.getElementById('total-disponibles').textContent = 100 - (pagados + reservados);
+      document.getElementById('total-recaudado').textContent = `$${recaudado.toLocaleString()}`;
     }
 
     // Cargar todos los números
@@ -404,10 +420,7 @@
 
       db.collection('numeros').orderBy('timestamp', 'desc').get().then(snapshot => {
         todosLosNumeros = [];
-        let pagados = 0;
-        let reservados = 0;
-        let recaudado = 0;
-
+        
         snapshot.forEach(doc => {
           const data = doc.data();
           todosLosNumeros.push({
@@ -415,22 +428,12 @@
             ...data,
             fecha: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'Sin fecha'
           });
-
-          if (data.estado === 'pagado') {
-            pagados++;
-            recaudado += 10000;
-          } else if (data.estado === 'reservado') {
-            reservados++;
-          }
         });
 
         // Actualizar estadísticas
-        document.getElementById('total-pagados').textContent = pagados;
-        document.getElementById('total-reservados').textContent = reservados;
-        document.getElementById('total-disponibles').textContent = 100 - (pagados + reservados);
-        document.getElementById('total-recaudado').textContent = `$${recaudado.toLocaleString()}`;
-
+        actualizarEstadisticas();
         mostrarLista();
+        
       }).catch(error => {
         console.error('Error cargando datos:', error);
         document.getElementById('lista-numeros').innerHTML = '<div class="empty-state">❌ Error cargando datos</div>';
@@ -537,19 +540,30 @@
       mostrarLista();
     }
 
-    // Reactivar número
+    // Reactivar número - VERSIÓN CORREGIDA
     function reactivarNumero(docId, numero) {
       if (confirm(`¿Estás segura de reactivar el número ${numero}?\n\nSe liberará para que otra persona lo pueda comprar.`)) {
-        db.collection('numeros').doc(docId).update({
-          estado: 'disponible',
-          nombre: firebase.firestore.FieldValue.delete(),
-          telefono: firebase.firestore.FieldValue.delete(),
-          metodo_pago: firebase.firestore.FieldValue.delete(),
-          timestamp: firebase.firestore.FieldValue.delete()
-        }).then(() => {
+        // PRIMERO eliminar el documento existente
+        db.collection('numeros').doc(docId).delete().then(() => {
+          console.log(`✅ Número ${numero} eliminado de Firebase`);
+          
+          // LUEGO actualizar la interfaz localmente
+          const index = todosLosNumeros.findIndex(n => n.id === docId);
+          if (index !== -1) {
+            todosLosNumeros.splice(index, 1);
+          }
+          
+          // Actualizar estadísticas
+          actualizarEstadisticas();
+          
+          // Mostrar mensaje de éxito
           alert(`✅ Número ${numero} reactivado correctamente`);
-          cargarDatos();
+          
+          // Recargar la lista
+          mostrarLista();
+          
         }).catch(error => {
+          console.error('Error eliminando número:', error);
           alert('❌ Error reactivando número: ' + error.message);
         });
       }
@@ -592,7 +606,6 @@
       if (!isScrolling) return;
       
       const touchEndY = e.changedTouches[0].clientY;
-      // Solo hacer refresh si el scroll está en el top y se hace pull down
       if (window.scrollY === 0 && touchStartY - touchEndY > 100) {
         cargarDatos();
       }
