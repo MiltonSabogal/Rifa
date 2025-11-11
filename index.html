@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Rifa Navideña - ¡Gánate un Hermoso Peluche!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,7 @@
   <header>
     <div class="logo-titulo">
       <h1>🎄 Rifa Navideña 🎅</h1>
-      <div class="sorteo-info">¡Gánate este Hermoso Peluche! | Valor: $10.000 | Sorteo: 6 de Diciembre</div>
+      <div class="sorteo-info">¡Gánate estos Hermosos Peluches! | Valor: $10.000 | Sorteo: 6 de Diciembre</div>
     </div>
   </header>
   
@@ -72,7 +72,26 @@
     </aside>
   </main>
   
-  <!-- Modal de Método de Pago -->
+  <!-- Modal de Confirmación de Pago -->
+  <div id="modalConfirmacionPago" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>💳 Confirmar Pago</h2>
+      <div class="opciones-confirmacion">
+        <div class="opcion-confirmacion" data-tipo="pago-inmediato">
+          <h3>💳 Voy a pagar ahora</h3>
+          <p>Selecciona tu método de pago y marca como <strong>PAGADO</strong></p>
+        </div>
+        <div class="opcion-confirmacion" data-tipo="pago-despues">
+          <h3>⏰ Pagaré después</h3>
+          <p>Solo reserva los números como <strong>RESERVADO</strong></p>
+        </div>
+      </div>
+      <button id="confirmarTipoPago" class="btn-confirmar">✅ Continuar</button>
+    </div>
+  </div>
+  
+  <!-- Modal de Método de Pago (solo para "Voy a pagar ahora") -->
   <div id="modalPago" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
@@ -80,25 +99,25 @@
       <div class="metodos-pago">
         <div class="metodo-option" data-metodo="efectivo">
           <h3>💵 Efectivo</h3>
-          <p>Pagarás directamente a Edith Malagon</p>
+          <p>Pagar directamente a Edith Malagon</p>
         </div>
         <div class="metodo-option" data-metodo="nequi">
           <h3>📱 Nequi</h3>
-          <p>Pago por Nequi al número: <strong>3227605790</strong></p>
+          <p>Transferencia a: <strong>3227605790</strong></p>
         </div>
         <div class="metodo-option" data-metodo="daviplata">
           <h3>📲 DaviPlata</h3>
-          <p>Pago por DaviPlata al número: <strong>3227605790</strong></p>
+          <p>Transferencia a: <strong>3227605790</strong></p>
         </div>
       </div>
       <div id="info-nequi" class="info-pago" style="display: none;">
-        <h4>📋 Instrucciones para Nequi/DaviPlata:</h4>
+        <h4>📋 Instrucciones para transferencia:</h4>
         <p>1. Realiza la transferencia al número: <strong>3227605790</strong></p>
         <p>2. Toma captura del comprobante</p>
         <p>3. Envía el comprobante al WhatsApp: <strong>3227605790</strong></p>
-        <p class="importante">⚠️ <strong>Importante:</strong> Tu número quedará confirmado solo cuando envíes el comprobante</p>
+        <p class="importante">⚠️ <strong>Importante:</strong> Tu número quedará confirmado cuando envíes el comprobante</p>
       </div>
-      <button id="confirmarReserva" class="btn-confirmar">✅ Confirmar Reserva</button>
+      <button id="confirmarReserva" class="btn-confirmar">✅ Confirmar Pago</button>
     </div>
   </div>
   
