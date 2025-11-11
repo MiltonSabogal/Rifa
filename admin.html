@@ -21,11 +21,15 @@
       color: #333;
       line-height: 1.6;
       padding: 15px;
+      overflow: hidden; /* Previene scroll del body */
     }
 
     .container {
       max-width: 100%;
       margin: 0 auto;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
@@ -33,8 +37,9 @@
       padding: 20px;
       border-radius: 15px;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
     }
 
     h1 {
@@ -47,7 +52,8 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
+      flex-shrink: 0;
     }
 
     .stat-card {
@@ -74,9 +80,10 @@
       display: flex;
       background: white;
       border-radius: 10px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
     }
 
     .tab {
@@ -89,6 +96,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
+      font-size: 0.9em;
     }
 
     .tab.active {
@@ -96,13 +104,37 @@
       color: white;
     }
 
+    .search-bar {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1em;
+      flex-shrink: 0;
+    }
+
+    .search-bar:focus {
+      outline: none;
+      border-color: #c62828;
+    }
+
     .content {
       background: white;
       border-radius: 15px;
       padding: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      max-height: 60vh;
+      height: 50vh;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex-grow: 1;
+    }
+
+    .numbers-container {
+      height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .numero-item {
@@ -164,36 +196,22 @@
       margin-top: 5px;
     }
 
-    .search-bar {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 1em;
-    }
-
-    .search-bar:focus {
-      outline: none;
-      border-color: #c62828;
-    }
-
     .actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-top: 10px;
     }
 
     .btn {
-      padding: 6px 12px;
+      padding: 6px 10px;
       border: none;
       border-radius: 6px;
       font-family: 'Poppins', sans-serif;
       font-weight: 600;
       cursor: pointer;
-      font-size: 0.8em;
+      font-size: 0.75em;
       transition: all 0.3s;
+      flex: 1;
     }
 
     .btn-reactivar {
@@ -233,8 +251,8 @@
     .numbers-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-top: 15px;
+      gap: 6px;
+      padding: 5px;
     }
 
     .grid-number {
@@ -244,6 +262,7 @@
       border-radius: 8px;
       font-weight: 600;
       background: white;
+      font-size: 0.9em;
     }
 
     .grid-number.disponible {
@@ -260,13 +279,33 @@
     @media (max-width: 480px) {
       .numbers-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
+        gap: 5px;
       }
       
       .grid-number {
         padding: 8px 3px;
-        font-size: 0.9em;
+        font-size: 0.85em;
       }
+      
+      .tab {
+        padding: 10px 8px;
+        font-size: 0.8em;
+      }
+    }
+
+    /* Scrollbar personalizado */
+    .content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .content::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      background: #c62828;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -306,8 +345,10 @@
     <input type="text" class="search-bar" id="search" placeholder="🔍 Buscar por nombre, teléfono o número..." onkeyup="filtrarLista()">
 
     <div class="content">
-      <div id="lista-numeros" class="loading">
-        Cargando datos...
+      <div class="numbers-container">
+        <div id="lista-numeros" class="loading">
+          Cargando datos...
+        </div>
       </div>
     </div>
   </div>
@@ -317,7 +358,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   
   <script>
-    // Configuración de Firebase (la misma que tu app principal)
+    // Configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
       authDomain: "rifa-misaga.firebaseapp.com",
@@ -335,6 +376,15 @@
 
     let todosLosNumeros = [];
     let tabActual = 'pagados';
+
+    // Función para mejorar el scroll en móviles
+    function inicializarScrollMovil() {
+      const content = document.querySelector('.content');
+      
+      content.addEventListener('touchmove', function(e) {
+        // Permitir scroll normal
+      }, { passive: true });
+    }
 
     // Cargar todos los números
     function cargarDatos() {
@@ -357,7 +407,7 @@
 
           if (data.estado === 'pagado') {
             pagados++;
-            recaudado += 10000; // $10,000 por número
+            recaudado += 10000;
           } else if (data.estado === 'reservado') {
             reservados++;
           }
@@ -369,7 +419,6 @@
         document.getElementById('total-disponibles').textContent = 100 - (pagados + reservados);
         document.getElementById('total-recaudado').textContent = `$${recaudado.toLocaleString()}`;
 
-        // Mostrar la lista según la pestaña activa
         mostrarLista();
       }).catch(error => {
         console.error('Error cargando datos:', error);
@@ -438,7 +487,7 @@
       const numerosOcupados = todosLosNumeros.map(n => n.numero);
       const lista = document.getElementById('lista-numeros');
       
-      let contenido = '<h3 style="margin-bottom: 15px; color: #c62828;">Números Disponibles</h3>';
+      let contenido = '<h3 style="margin-bottom: 15px; color: #c62828; text-align: center;">Números Disponibles</h3>';
       contenido += '<div class="numbers-grid">';
       
       for (let i = 0; i < 100; i++) {
@@ -479,14 +528,15 @@
 
     // Reactivar número
     function reactivarNumero(docId, numero) {
-      if (confirm(`¿Estás segura de reactivar el número ${numero}?`)) {
+      if (confirm(`¿Estás segura de reactivar el número ${numero}?\n\nSe liberará para que otra persona lo pueda comprar.`)) {
         db.collection('numeros').doc(docId).update({
           estado: 'disponible',
           nombre: firebase.firestore.FieldValue.delete(),
           telefono: firebase.firestore.FieldValue.delete(),
-          metodo_pago: firebase.firestore.FieldValue.delete()
+          metodo_pago: firebase.firestore.FieldValue.delete(),
+          timestamp: firebase.firestore.FieldValue.delete()
         }).then(() => {
-          alert(`✅ Número ${numero} reactivado`);
+          alert(`✅ Número ${numero} reactivado correctamente`);
           cargarDatos();
         }).catch(error => {
           alert('❌ Error reactivando número: ' + error.message);
@@ -496,9 +546,9 @@
 
     // Eliminar número
     function eliminarNumero(docId, numero) {
-      if (confirm(`¿Estás segura de ELIMINAR permanentemente el número ${numero}?`)) {
+      if (confirm(`⚠️ ¿Estás segura de ELIMINAR permanentemente el número ${numero}?\n\nEsta acción no se puede deshacer.`)) {
         db.collection('numeros').doc(docId).delete().then(() => {
-          alert(`🗑️ Número ${numero} eliminado`);
+          alert(`🗑️ Número ${numero} eliminado permanentemente`);
           cargarDatos();
         }).catch(error => {
           alert('❌ Error eliminando número: ' + error.message);
@@ -506,11 +556,14 @@
       }
     }
 
-    // Cargar datos al iniciar y cada 30 segundos
-    cargarDatos();
-    setInterval(cargarDatos, 30000);
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+      inicializarScrollMovil();
+      cargarDatos();
+      setInterval(cargarDatos, 30000);
+    });
 
-    // Recargar al hacer pull down
+    // Pull to refresh
     let touchStartY = 0;
     document.addEventListener('touchstart', e => {
       touchStartY = e.touches[0].clientY;
@@ -518,7 +571,7 @@
 
     document.addEventListener('touchend', e => {
       const touchEndY = e.changedTouches[0].clientY;
-      if (touchStartY - touchEndY > 100) { // Pull down
+      if (touchStartY - touchEndY > 100) {
         cargarDatos();
       }
     });
