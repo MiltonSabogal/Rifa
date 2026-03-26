@@ -1,4 +1,4 @@
-// Configuración de Firebase (misma configuración)
+// Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
   authDomain: "rifa-misaga.firebaseapp.com",
@@ -39,14 +39,16 @@ const infoNequi = document.getElementById('info-nequi');
 const btnConfirmar = document.getElementById('confirmarReserva');
 
 // Variables globales
-let selectedNumbers = [];
+let selectedNumbers = [];        // Almacena exactamente dos números seleccionados
 let selectedTipoPago = '';
 let selectedMetodo = '';
 let currentReservationData = null;
-let numerosOcupados = [];
+let tickets = [];                // Lista de boletas (tickets) cargadas
+let numerosOcupados = new Set(); // Set de números ya tomados
 let cacheTimestamp = 0;
 const CACHE_DURATION = 5 * 60 * 1000;
-const TOTAL_NUMEROS = 50; // AHORA 50 NÚMEROS
+const TOTAL_NUMEROS = 100;       // 00-99
+const PRECIO_BOLETA = 10000;
 
 // Función para mostrar notificaciones
 function showNotification(message, isSuccess) {
@@ -61,84 +63,64 @@ function showNotification(message, isSuccess) {
 const validatePhone = phone => /^[0-9]{10,15}$/.test(phone);
 const validateName = name => name.trim().length >= 5;
 
-// Función para generar los números en la interfaz (solo 00 al 49)
+// Función para generar los números en la interfaz
 function generarNumeros() {
   container.innerHTML = '';
 
-  // Crear un set de números ocupados para búsqueda rápida
-  const ocupadosMap = new Map();
-  numerosOcupados.forEach(n => {
-    ocupadosMap.set(n.numero, n);
-  });
-
   for (let i = 0; i < TOTAL_NUMEROS; i++) {
     const num = i.toString().padStart(2, '0');
-    const numeroInfo = ocupadosMap.get(num);
-    
-    if (numeroInfo) {
-      if (numeroInfo.estado === 'pagado') {
-        crearElementoNumero(num, 'pagado', 'Pagado');
-      } else if (numeroInfo.estado === 'reservado') {
-        crearElementoNumero(num, 'reservado', 'Reservado');
-      }
-    } else {
-      crearElementoNumero(num, 'disponible');
-    }
+    const ocupado = numerosOcupados.has(num);
+    crearElementoNumero(num, ocupado);
   }
   
   spinner.style.display = 'none';
 }
 
 // Función auxiliar para crear elementos de número
-function crearElementoNumero(num, estado, textoExtra = '') {
+function crearElementoNumero(num, ocupado) {
   const div = document.createElement('div');
-  div.classList.add('number', estado);
+  div.classList.add('number');
   div.dataset.num = num;
 
-  if (estado === 'pagado') {
-    div.innerHTML = `${num}<br><small>Pagado</small>`;
-    div.style.pointerEvents = 'none';
-  } else if (estado === 'reservado') {
-    div.innerHTML = `${num}<br><small>Reservado</small>`;
+  if (ocupado) {
+    div.classList.add('ocupado');
+    div.innerHTML = `${num}<br><small>Ocupado</small>`;
     div.style.pointerEvents = 'none';
   } else {
+    div.classList.add('disponible');
     div.innerText = num;
     
     div.addEventListener('click', () => {
-      // VERIFICAR EN TIEMPO REAL si el número sigue disponible
+      // Verificar en tiempo real si el número sigue disponible
       verificarDisponibilidadNumero(num).then(disponible => {
         if (!disponible) {
           showNotification(`El número ${num} ya no está disponible. Actualizando...`, false);
           // Actualizar la interfaz
           div.classList.remove('disponible', 'selected');
-          div.classList.add('reservado');
+          div.classList.add('ocupado');
           div.innerHTML = `${num}<br><small>Ocupado</small>`;
           div.style.pointerEvents = 'none';
           
           // Remover de seleccionados si estaba seleccionado
           selectedNumbers = selectedNumbers.filter(n => n !== num);
-          inputNumero.value = selectedNumbers.join(', ');
-          totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
-          
+          actualizarSeleccion();
           return;
         }
 
-        // Si está disponible, proceder con la selección
-        if (!selectedNumbers.includes(num) && selectedNumbers.length >= 10) {
-          showNotification('Puedes seleccionar máximo 10 números', false);
-          return;
-        }
-
+        // Manejar selección (máximo 2 números)
         if (selectedNumbers.includes(num)) {
           selectedNumbers = selectedNumbers.filter(n => n !== num);
           div.classList.remove('selected');
         } else {
+          if (selectedNumbers.length >= 2) {
+            showNotification('Solo puedes seleccionar 2 números por boleta.', false);
+            return;
+          }
           selectedNumbers.push(num);
           div.classList.add('selected');
         }
 
-        inputNumero.value = selectedNumbers.join(', ');
-        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+        actualizarSeleccion();
       });
     });
   }
@@ -146,10 +128,16 @@ function crearElementoNumero(num, estado, textoExtra = '') {
   container.appendChild(div);
 }
 
+// Actualizar campo de texto y total después de selección
+function actualizarSeleccion() {
+  inputNumero.value = selectedNumbers.join(', ');
+  totalPago.innerHTML = `<strong>Total a pagar:</strong> $${PRECIO_BOLETA.toLocaleString('es-CO')}`;
+}
+
 // Verificar disponibilidad en tiempo real
 function verificarDisponibilidadNumero(numero) {
-  return db.collection('numeros')
-    .where('numero', '==', numero)
+  return db.collection('tickets')
+    .where('numeros', 'array-contains', numero)
     .limit(1)
     .get()
     .then(snapshot => snapshot.empty)
@@ -170,57 +158,57 @@ function verificarDisponibilidadNumerosSeleccionados() {
   });
 }
 
-// Cargar números ocupados desde Firestore (solo dentro del rango 00-49)
-function cargarNumerosOcupados() {
+// Cargar tickets desde Firestore y actualizar numerosOcupados
+function cargarTickets() {
   const now = Date.now();
 
-  if (now - cacheTimestamp < CACHE_DURATION && numerosOcupados.length > 0) {
-    console.log("Cargando números desde caché local.");
+  if (now - cacheTimestamp < CACHE_DURATION && tickets.length > 0) {
+    console.log("Cargando tickets desde caché local.");
     generarNumeros();
     return;
   }
 
   spinner.style.display = 'block';
 
-  db.collection('numeros').get().then(snapshot => {
-    const ocupados = snapshot.docs.map(doc => {
+  db.collection('tickets').get().then(snapshot => {
+    tickets = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
-        numero: data.numero,
-        estado: data.estado || 'reservado',
-        metodo_pago: data.metodo_pago || 'efectivo',
-        nombre: data.nombre,
-        telefono: data.telefono
+        id: doc.id,
+        ...data,
+        fecha: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'Sin fecha'
       };
     });
-    // Filtrar solo números dentro del rango 00-49
-    numerosOcupados = ocupados.filter(item => {
-      const numInt = parseInt(item.numero, 10);
-      return numInt >= 0 && numInt < TOTAL_NUMEROS;
+    
+    // Construir conjunto de números ocupados
+    numerosOcupados.clear();
+    tickets.forEach(ticket => {
+      ticket.numeros.forEach(num => numerosOcupados.add(num));
     });
     
     cacheTimestamp = Date.now();
-    console.log("Números cargados de Firestore:", numerosOcupados);
+    console.log(`Tickets cargados: ${tickets.length}, números ocupados: ${numerosOcupados.size}`);
     generarNumeros();
 
     localStorage.setItem('cacheRifa', JSON.stringify({
-      numerosOcupados,
+      tickets,
+      numerosOcupados: Array.from(numerosOcupados),
       timestamp: cacheTimestamp
     }));
   }).catch(error => {
-    console.error('Error al cargar números desde Firestore:', error);
+    console.error('Error al cargar tickets:', error);
 
     const cache = localStorage.getItem('cacheRifa');
     if (cache) {
       const data = JSON.parse(cache);
-      numerosOcupados = (data.numerosOcupados || []).filter(item => {
-        const numInt = parseInt(item.numero, 10);
-        return numInt >= 0 && numInt < TOTAL_NUMEROS;
-      });
+      tickets = data.tickets || [];
+      numerosOcupados.clear();
+      (data.numerosOcupados || []).forEach(num => numerosOcupados.add(num));
       cacheTimestamp = data.timestamp || 0;
       showNotification('Error al conectar. Usando datos locales.', false);
     } else {
-      numerosOcupados = [];
+      tickets = [];
+      numerosOcupados.clear();
     }
 
     generarNumeros();
@@ -256,8 +244,8 @@ function inicializarEventListeners() {
     const nombre = document.getElementById('nombre').value.trim();
     const telefono = document.getElementById('telefono').value.trim();
     
-    if (selectedNumbers.length === 0) {
-      showNotification('Por favor, selecciona al menos un número.', false);
+    if (selectedNumbers.length !== 2) {
+      showNotification('Debes seleccionar exactamente 2 números para comprar una boleta.', false);
       return;
     }
     
@@ -281,20 +269,19 @@ function inicializarEventListeners() {
           const div = document.querySelector(`.number[data-num="${num}"]`);
           if (div) {
             div.classList.remove('disponible', 'selected');
-            div.classList.add('reservado');
+            div.classList.add('ocupado');
             div.innerHTML = `${num}<br><small>Ocupado</small>`;
             div.style.pointerEvents = 'none';
           }
           selectedNumbers = selectedNumbers.filter(n => n !== num);
         });
         
-        inputNumero.value = selectedNumbers.join(', ');
-        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+        actualizarSeleccion();
         return;
       }
       
       currentReservationData = {
-        numero: selectedNumbers.join(', '),
+        numeros: [...selectedNumbers],
         nombre: nombre,
         telefono: telefono
       };
@@ -323,7 +310,7 @@ function inicializarEventListeners() {
     } else {
       currentReservationData.estado = 'reservado';
       currentReservationData.metodo_pago = 'efectivo';
-      guardarReservaEnFirebase();
+      guardarTicketEnFirebase();
     }
   });
 
@@ -357,21 +344,20 @@ function inicializarEventListeners() {
           const div = document.querySelector(`.number[data-num="${num}"]`);
           if (div) {
             div.classList.remove('disponible', 'selected');
-            div.classList.add('reservado');
+            div.classList.add('ocupado');
             div.innerHTML = `${num}<br><small>Ocupado</small>`;
             div.style.pointerEvents = 'none';
           }
           selectedNumbers = selectedNumbers.filter(n => n !== num);
         });
         
-        inputNumero.value = selectedNumbers.join(', ');
-        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+        actualizarSeleccion();
         return;
       }
       
       currentReservationData.estado = 'pagado';
       currentReservationData.metodo_pago = selectedMetodo;
-      guardarReservaEnFirebase();
+      guardarTicketEnFirebase();
     });
   });
 
@@ -383,15 +369,16 @@ function inicializarEventListeners() {
   });
 }
 
-// Guardar en Firebase
-function guardarReservaEnFirebase() {
+// Guardar ticket en Firebase
+function guardarTicketEnFirebase() {
   submitBtn.disabled = true;
   submitText.textContent = 'Procesando...';
   submitSpinner.style.display = 'inline-block';
 
-  const verificaciones = selectedNumbers.map(num => 
-    db.collection('numeros')
-      .where('numero', '==', num)
+  // Verificación final de disponibilidad de cada número
+  const verificaciones = currentReservationData.numeros.map(num => 
+    db.collection('tickets')
+      .where('numeros', 'array-contains', num)
       .limit(1)
       .get()
       .then(snap => ({ num, disponible: snap.empty }))
@@ -406,97 +393,77 @@ function guardarReservaEnFirebase() {
         ocupadosRecien.forEach(num => {
           const div = document.querySelector(`.number[data-num="${num}"]`);
           if (div) {
+            div.classList.remove('disponible', 'selected');
             div.classList.add('ocupado');
-            div.classList.remove('selected', 'disponible');
-            div.style.pointerEvents = 'none';
             div.innerHTML = `${num}<br><small>Ocupado</small>`;
+            div.style.pointerEvents = 'none';
           }
           selectedNumbers = selectedNumbers.filter(n => n !== num);
         });
-        inputNumero.value = selectedNumbers.join(', ');
-        totalPago.innerHTML = `<strong>Total a pagar:</strong> $${(selectedNumbers.length * 10000).toLocaleString('es-CO')}`;
+        actualizarSeleccion();
         throw new Error('Números ocupados');
       }
 
-      const batch = db.batch();
-      const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-      selectedNumbers.forEach(num => {
-        const numRef = db.collection('numeros').doc();
-        batch.set(numRef, {
-          numero: num,
-          nombre: currentReservationData.nombre,
-          telefono: currentReservationData.telefono,
-          estado: currentReservationData.estado,
-          metodo_pago: currentReservationData.metodo_pago,
-          timestamp: timestamp
-        });
-      });
-
-      const compradorRef = db.collection('compradores').doc();
-      batch.set(compradorRef, {
+      // Crear documento en tickets
+      const ticketRef = db.collection('tickets').doc();
+      const ticketData = {
+        numeros: currentReservationData.numeros,
         nombre: currentReservationData.nombre,
         telefono: currentReservationData.telefono,
-        numeros: selectedNumbers,
         estado: currentReservationData.estado,
         metodo_pago: currentReservationData.metodo_pago,
-        timestamp: timestamp
-      });
-
-      return batch.commit();
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      return ticketRef.set(ticketData);
     })
     .then(() => {
       const mensaje = currentReservationData.estado === 'pagado'
         ? '¡Pago confirmado! Gracias por tu apoyo. 🎉'
-        : '¡Reserva exitosa! Recuerda realizar tu pago en efectivo. 💵';
+        : '¡Boleta reservada! Recuerda realizar tu pago en efectivo. 💵';
       showNotification(mensaje, true);
       
-      selectedNumbers.forEach(num => {
+      // Actualizar UI localmente
+      currentReservationData.numeros.forEach(num => {
         const div = document.querySelector(`.number[data-num="${num}"]`);
         if (div) {
-          if (currentReservationData.estado === 'pagado') {
-            div.classList.remove('selected', 'disponible');
-            div.classList.add('pagado');
-            div.innerHTML = `${num}<br><small>Pagado</small>`;
-          } else {
-            div.classList.remove('selected', 'disponible');
-            div.classList.add('reservado');
-            div.innerHTML = `${num}<br><small>Reservado</small>`;
-          }
+          div.classList.remove('disponible', 'selected');
+          div.classList.add('ocupado');
+          div.innerHTML = `${num}<br><small>Ocupado</small>`;
           div.style.pointerEvents = 'none';
         }
+        numerosOcupados.add(num);
       });
       
-      selectedNumbers.forEach(num => {
-        numerosOcupados.push({
-          numero: num,
-          estado: currentReservationData.estado,
-          metodo_pago: currentReservationData.metodo_pago,
-          nombre: currentReservationData.nombre,
-          telefono: currentReservationData.telefono
-        });
+      // Actualizar caché local
+      tickets.push({
+        numeros: currentReservationData.numeros,
+        nombre: currentReservationData.nombre,
+        telefono: currentReservationData.telefono,
+        estado: currentReservationData.estado,
+        metodo_pago: currentReservationData.metodo_pago,
+        fecha: new Date().toLocaleString()
       });
-
       localStorage.setItem('cacheRifa', JSON.stringify({
-        numerosOcupados,
+        tickets,
+        numerosOcupados: Array.from(numerosOcupados),
         timestamp: Date.now()
       }));
       
+      // Resetear selección
       selectedNumbers = [];
-      inputNumero.value = '';
-      totalPago.innerHTML = `<strong>Total a pagar:</strong> $0`;
+      actualizarSeleccion();
       form.reset();
       resetModales();
     })
     .catch(error => {
-      console.error('Error al procesar la reserva:', error);
+      console.error('Error al procesar la boleta:', error);
       if (error.message !== 'Números ocupados') {
-        showNotification('Error al procesar la reserva: ' + error.message, false);
+        showNotification('Error al procesar la boleta: ' + error.message, false);
       }
     })
     .finally(() => {
       submitBtn.disabled = false;
-      submitText.textContent = '🎟️ Reservar números';
+      submitText.textContent = '🎟️ Comprar boleta (2 números)';
       submitSpinner.style.display = 'none';
     });
 }
@@ -508,15 +475,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const cache = localStorage.getItem('cacheRifa');
   if (cache) {
     const data = JSON.parse(cache);
-    numerosOcupados = (data.numerosOcupados || []).filter(item => {
-      const numInt = parseInt(item.numero, 10);
-      return numInt >= 0 && numInt < TOTAL_NUMEROS;
-    });
+    tickets = data.tickets || [];
+    numerosOcupados.clear();
+    (data.numerosOcupados || []).forEach(num => numerosOcupados.add(num));
     cacheTimestamp = data.timestamp || 0;
     generarNumeros();
   }
 
-  cargarNumerosOcupados();
+  cargarTickets();
   
   const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   if (esMovil) document.body.classList.add('es-movil');
