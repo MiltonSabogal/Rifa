@@ -131,7 +131,7 @@ header::before {
   margin-bottom: 20px;
 }
 
-/* Grid de Números - AHORA 50 NÚMEROS (00-49) */
+/* Grid de Números - 10 columnas para 100 números */
 .numbers-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
@@ -181,6 +181,7 @@ header::before {
   opacity: 1;
 }
 
+/* Estado: Disponible (color original) */
 .number.disponible {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   color: #c62828;
@@ -193,14 +194,8 @@ header::before {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.number.reservado {
-  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-  color: #856404;
-  border-color: #ffc107;
-  cursor: not-allowed;
-}
-
-.number.pagado {
+/* Estado: Ocupado (ya pertenece a una boleta) */
+.number.ocupado {
   background: linear-gradient(135deg, #d4edda, #c3e6cb);
   color: #155724;
   border-color: #28a745;
