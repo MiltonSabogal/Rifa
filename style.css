@@ -71,14 +71,14 @@ header::before {
   flex-wrap: wrap;
 }
 
-/* Sección del Peluche */
-.peluche-section {
+/* Sección de la Bicicleta */
+.bicicleta-section {
   width: 100%;
   margin-bottom: 20px;
   text-align: center;
 }
 
-.peluche-card {
+.bicicleta-card {
   background: linear-gradient(135deg, #ffffff, #e8f5e8);
   border: 3px solid #2e7d32;
   border-radius: 15px;
@@ -88,7 +88,7 @@ header::before {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.peluche-img {
+.bicicleta-img {
   width: 100%;
   height: 200px;
   background: linear-gradient(135deg, #ffeb3b, #ff9800);
@@ -102,7 +102,7 @@ header::before {
   position: relative;
 }
 
-.peluche-img img {
+.bicicleta-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -113,13 +113,13 @@ header::before {
   color: #c62828;
 }
 
-.peluche-card h3 {
+.bicicleta-card h3 {
   color: #c62828;
   margin-bottom: 10px;
   font-size: 1.2em;
 }
 
-.peluche-card p {
+.bicicleta-card p {
   color: #1a3c34;
   font-size: 0.9em;
 }
@@ -131,7 +131,7 @@ header::before {
   margin-bottom: 20px;
 }
 
-/* Grid de Números - CORREGIDO PARA MÓVILES */
+/* Grid de Números - AHORA 50 NÚMEROS (00-49) */
 .numbers-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
@@ -181,7 +181,6 @@ header::before {
   opacity: 1;
 }
 
-/* Estado: Disponible (color original) */
 .number.disponible {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   color: #c62828;
@@ -194,7 +193,6 @@ header::before {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Estado: Reservado (color amarillo) */
 .number.reservado {
   background: linear-gradient(135deg, #fff3cd, #ffeaa7);
   color: #856404;
@@ -202,7 +200,6 @@ header::before {
   cursor: not-allowed;
 }
 
-/* Estado: Pagado (color verde) */
 .number.pagado {
   background: linear-gradient(135deg, #d4edda, #c3e6cb);
   color: #155724;
@@ -439,7 +436,6 @@ header::before {
   margin: 20px 0;
 }
 
-/* MEJORAR LA INTERACCIÓN DE LAS OPCIONES SELECCIONABLES */
 .opcion-confirmacion {
   background: white;
   border: 2px solid #2e7d32;
@@ -557,7 +553,6 @@ header::before {
   font-size: 0.85em;
 }
 
-/* ASEGURAR QUE LOS BOTONES SEAN CLICKEABLES */
 .btn-confirmar {
   width: 100%;
   padding: 15px;
@@ -613,7 +608,6 @@ header::before {
   100% { transform: rotate(360deg); }
 }
 
-/* Botón de submit con spinner */
 #submit-btn {
   position: relative;
   display: flex;
@@ -655,7 +649,7 @@ header::before {
   background: linear-gradient(to right, #c62828, #d32f2f);
 }
 
-/* MEJORAS ESPECÍFICAS PARA MÓVILES - CORREGIDO */
+/* MEJORAS ESPECÍFICAS PARA MÓVILES */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -734,12 +728,11 @@ header::before {
     font-size: 24px;
   }
   
-  .peluche-card {
+  .bicicleta-card {
     max-width: 100%;
   }
 }
 
-/* Para pantallas muy pequeñas (menos de 480px) */
 @media (max-width: 480px) {
   .numbers-grid {
     grid-template-columns: repeat(5, 1fr);
@@ -774,11 +767,10 @@ header::before {
   }
   
   .formulario input {
-    font-size: 16px; /* Previene zoom en iOS */
+    font-size: 16px;
   }
 }
 
-/* Para pantallas extremadamente pequeñas (menos de 360px) */
 @media (max-width: 360px) {
   .numbers-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -796,7 +788,6 @@ header::before {
   }
 }
 
-/* Scroll personalizado para el modal */
 .modal-content::-webkit-scrollbar {
   width: 8px;
 }
@@ -815,7 +806,6 @@ header::before {
   background: #d32f2f;
 }
 
-/* Asegurar que los modales se muestren correctamente en PC */
 @media (min-width: 769px) {
   .modal-content {
     margin: 5% auto;
@@ -823,22 +813,21 @@ header::before {
   }
 }
 
-/* Desktop */
 @media (min-width: 1024px) {
   .container {
     max-width: 1200px;
     flex-direction: row;
   }
   
-  .peluche-section {
+  .bicicleta-section {
     width: 100%;
   }
   
-  .peluche-card {
+  .bicicleta-card {
     max-width: 350px;
   }
   
-  .peluche-img {
+  .bicicleta-img {
     height: 250px;
   }
   
@@ -851,7 +840,6 @@ header::before {
   }
 }
 
-/* Estilos para mejorar experiencia táctil */
 .es-movil .numbers-grid {
   gap: 4px;
 }
