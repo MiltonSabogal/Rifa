@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Rifa Bicicleta</title>
+  <title>Admin - Rifa Bicicleta (Doble Oportunidad)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -123,7 +123,7 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    .numero-item {
+    .ticket-item {
       background: #f8f9fa;
       border-radius: 8px;
       padding: 12px;
@@ -131,24 +131,24 @@
       border-left: 4px solid #c62828;
     }
 
-    .numero-item.pagado {
+    .ticket-item.pagado {
       border-left-color: #28a745;
       background: #d4edda;
     }
 
-    .numero-item.reservado {
+    .ticket-item.reservado {
       border-left-color: #ffc107;
       background: #fff3cd;
     }
 
-    .numero-header {
+    .ticket-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
     }
 
-    .numero {
+    .numeros {
       font-weight: bold;
       font-size: 1.1em;
       color: #c62828;
@@ -233,7 +233,7 @@
       display: block;
     }
 
-    /* Grid de números disponibles (50 números) */
+    /* Grid de números disponibles (100 números) */
     .numbers-grid {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
@@ -307,8 +307,8 @@
 <body>
   <div class="container">
     <header>
-      <h1>🚲 Admin Rifa Bicicleta</h1>
-      <p>Panel de control - Edith Malagon</p>
+      <h1>🚲 Admin Rifa Bicicleta - Doble Oportunidad</h1>
+      <p>Panel de control - Edith Malagon | 50 boletas (2 números cada una)</p>
     </header>
 
     <div class="stats">
@@ -322,7 +322,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-number" id="total-disponibles">50</div>
-        <div class="stat-label">Disponibles</div>
+        <div class="stat-label">Boletas Disponibles</div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="total-recaudado">$0</div>
@@ -333,14 +333,14 @@
     <div class="tabs">
       <button class="tab active" onclick="mostrarTab('pagados')">✅ Pagados</button>
       <button class="tab" onclick="mostrarTab('reservados')">⏰ Reservados</button>
-      <button class="tab" onclick="mostrarTab('disponibles')">🔢 Disponibles</button>
+      <button class="tab" onclick="mostrarTab('disponibles')">🔢 Números Disponibles</button>
       <button class="tab" onclick="mostrarTab('todos')">📋 Todos</button>
     </div>
 
-    <input type="text" class="search-bar" id="search" placeholder="🔍 Buscar por nombre, teléfono o número..." onkeyup="filtrarLista()">
+    <input type="text" class="search-bar" id="search" placeholder="🔍 Buscar por nombre, teléfono o números..." onkeyup="filtrarLista()">
 
     <div class="content">
-      <div id="lista-numeros" class="loading">
+      <div id="lista-tickets" class="loading">
         Cargando datos...
       </div>
     </div>
@@ -366,51 +366,47 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let todosLosNumeros = [];
+    let todosLosTickets = [];
     let tabActual = 'pagados';
-    const TOTAL_NUMEROS = 50;
+    const TOTAL_TICKETS = 50;
+    const PRECIO_BOLETA = 10000;
 
-    // Función para actualizar estadísticas (con total 50)
+    // Función para actualizar estadísticas
     function actualizarEstadisticas() {
       let pagados = 0;
       let reservados = 0;
       let recaudado = 0;
 
-      todosLosNumeros.forEach(numero => {
-        if (numero.estado === 'pagado') {
+      todosLosTickets.forEach(ticket => {
+        if (ticket.estado === 'pagado') {
           pagados++;
-          recaudado += 10000;
-        } else if (numero.estado === 'reservado') {
+          recaudado += PRECIO_BOLETA;
+        } else if (ticket.estado === 'reservado') {
           reservados++;
         }
       });
 
       document.getElementById('total-pagados').textContent = pagados;
       document.getElementById('total-reservados').textContent = reservados;
-      document.getElementById('total-disponibles').textContent = TOTAL_NUMEROS - (pagados + reservados);
+      document.getElementById('total-disponibles').textContent = TOTAL_TICKETS - (pagados + reservados);
       document.getElementById('total-recaudado').textContent = `$${recaudado.toLocaleString()}`;
     }
 
-    // Cargar todos los números (solo los que están dentro del rango 00-49)
+    // Cargar todos los tickets
     function cargarDatos() {
-      const lista = document.getElementById('lista-numeros');
+      const lista = document.getElementById('lista-tickets');
       lista.innerHTML = '<div class="loading">Cargando datos...</div>';
 
-      db.collection('numeros').orderBy('timestamp', 'desc').get().then(snapshot => {
-        todosLosNumeros = [];
+      db.collection('tickets').orderBy('timestamp', 'desc').get().then(snapshot => {
+        todosLosTickets = [];
         
         snapshot.forEach(doc => {
           const data = doc.data();
-          const numeroStr = data.numero;
-          const numInt = parseInt(numeroStr, 10);
-          // Solo incluir números dentro del rango de la rifa actual
-          if (numInt >= 0 && numInt < TOTAL_NUMEROS) {
-            todosLosNumeros.push({
-              id: doc.id,
-              ...data,
-              fecha: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'Sin fecha'
-            });
-          }
+          todosLosTickets.push({
+            id: doc.id,
+            ...data,
+            fecha: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'Sin fecha'
+          });
         });
 
         actualizarEstadisticas();
@@ -418,54 +414,54 @@
         
       }).catch(error => {
         console.error('Error cargando datos:', error);
-        document.getElementById('lista-numeros').innerHTML = '<div class="empty-state">❌ Error cargando datos</div>';
+        document.getElementById('lista-tickets').innerHTML = '<div class="empty-state">❌ Error cargando datos</div>';
       });
     }
 
     // Mostrar lista según la pestaña
     function mostrarLista() {
-      let numerosFiltrados = [];
+      let ticketsFiltrados = [];
 
       switch(tabActual) {
         case 'pagados':
-          numerosFiltrados = todosLosNumeros.filter(n => n.estado === 'pagado');
+          ticketsFiltrados = todosLosTickets.filter(t => t.estado === 'pagado');
           break;
         case 'reservados':
-          numerosFiltrados = todosLosNumeros.filter(n => n.estado === 'reservado');
+          ticketsFiltrados = todosLosTickets.filter(t => t.estado === 'reservado');
           break;
         case 'todos':
-          numerosFiltrados = todosLosNumeros;
+          ticketsFiltrados = todosLosTickets;
           break;
         case 'disponibles':
           mostrarNumerosDisponibles();
           return;
       }
 
-      const lista = document.getElementById('lista-numeros');
+      const lista = document.getElementById('lista-tickets');
       
-      if (numerosFiltrados.length === 0) {
-        lista.innerHTML = `<div class="empty-state">📭 No hay números ${tabActual === 'todos' ? '' : tabActual}</div>`;
+      if (ticketsFiltrados.length === 0) {
+        lista.innerHTML = `<div class="empty-state">📭 No hay boletas ${tabActual === 'todos' ? '' : tabActual}</div>`;
         return;
       }
 
-      lista.innerHTML = numerosFiltrados.map(numero => {
+      lista.innerHTML = ticketsFiltrados.map(ticket => {
         let botones = '';
         
-        if (numero.estado === 'reservado') {
+        if (ticket.estado === 'reservado') {
           botones = `
             <div class="actions">
-              <button class="btn btn-marcar-pagado" onclick="marcarComoPagado('${numero.id}', '${numero.numero}', '${numero.nombre || ''}', '${numero.metodo_pago || 'efectivo'}')">
+              <button class="btn btn-marcar-pagado" onclick="marcarComoPagado('${ticket.id}', '${ticket.numeros.join(', ')}', '${ticket.nombre || ''}', '${ticket.metodo_pago || 'efectivo'}')">
                 ✅ Marcar como Pagado
               </button>
-              <button class="btn btn-reactivar" onclick="reactivarNumero('${numero.id}', '${numero.numero}', '${numero.nombre || ''}')">
+              <button class="btn btn-reactivar" onclick="reactivarTicket('${ticket.id}', '${ticket.numeros.join(', ')}', '${ticket.nombre || ''}')">
                 🔄 Reactivar
               </button>
             </div>
           `;
-        } else if (numero.estado === 'pagado') {
+        } else if (ticket.estado === 'pagado') {
           botones = `
             <div class="actions">
-              <button class="btn btn-reactivar" onclick="reactivarNumero('${numero.id}', '${numero.numero}', '${numero.nombre || ''}')">
+              <button class="btn btn-reactivar" onclick="reactivarTicket('${ticket.id}', '${ticket.numeros.join(', ')}', '${ticket.nombre || ''}')">
                 🔄 Reactivar
               </button>
             </div>
@@ -473,39 +469,44 @@
         }
 
         return `
-          <div class="numero-item ${numero.estado}">
-            <div class="numero-header">
-              <div class="numero">Número ${numero.numero}</div>
-              <div class="estado ${numero.estado}">
-                ${numero.estado === 'pagado' ? '✅ Pagado' : '⏰ Reservado'}
+          <div class="ticket-item ${ticket.estado}">
+            <div class="ticket-header">
+              <div class="numeros">Boleta #${ticket.numeros.join(' - ')}</div>
+              <div class="estado ${ticket.estado}">
+                ${ticket.estado === 'pagado' ? '✅ Pagado' : '⏰ Reservado'}
               </div>
             </div>
             <div class="info">
-              <strong>${numero.nombre || 'Sin nombre'}</strong><br>
-              📞 ${numero.telefono || 'Sin teléfono'}<br>
-              💳 ${numero.metodo_pago || 'No especificado'}
+              <strong>${ticket.nombre || 'Sin nombre'}</strong><br>
+              📞 ${ticket.telefono || 'Sin teléfono'}<br>
+              💳 ${ticket.metodo_pago || 'No especificado'}
             </div>
-            <div class="fecha">${numero.fecha}</div>
+            <div class="fecha">${ticket.fecha}</div>
             ${botones}
           </div>
         `;
       }).join('');
     }
 
-    // Mostrar números disponibles (solo 00-49)
+    // Mostrar números disponibles (100 números, coloreados según ocupados)
     function mostrarNumerosDisponibles() {
-      const numerosOcupados = todosLosNumeros.map(n => n.numero);
-      const lista = document.getElementById('lista-numeros');
+      // Obtener todos los números ocupados de todos los tickets
+      const numerosOcupados = new Set();
+      todosLosTickets.forEach(ticket => {
+        ticket.numeros.forEach(num => numerosOcupados.add(num));
+      });
       
-      let contenido = '<h3 style="margin-bottom: 15px; color: #c62828; text-align: center;">Números Disponibles (00-49)</h3>';
+      const lista = document.getElementById('lista-tickets');
+      
+      let contenido = '<h3 style="margin-bottom: 15px; color: #c62828; text-align: center;">Estado de Números (00-99)</h3>';
       contenido += '<div class="numbers-grid">';
       
-      for (let i = 0; i < TOTAL_NUMEROS; i++) {
+      for (let i = 0; i < 100; i++) {
         const num = i.toString().padStart(2, '0');
-        const disponible = !numerosOcupados.includes(num);
+        const ocupado = numerosOcupados.has(num);
         
         contenido += `
-          <div class="grid-number ${disponible ? 'disponible' : 'ocupado'}">
+          <div class="grid-number ${ocupado ? 'ocupado' : 'disponible'}">
             ${num}
           </div>
         `;
@@ -519,7 +520,7 @@
     function filtrarLista() {
       const searchTerm = document.getElementById('search').value.toLowerCase();
       if (tabActual === 'disponibles') return;
-      const items = document.querySelectorAll('.numero-item');
+      const items = document.querySelectorAll('.ticket-item');
       items.forEach(item => {
         const text = item.textContent.toLowerCase();
         item.style.display = text.includes(searchTerm) ? 'block' : 'none';
@@ -535,9 +536,9 @@
     }
 
     // Marcar como Pagado
-    async function marcarComoPagado(docId, numero, nombre, metodoPagoActual) {
+    async function marcarComoPagado(docId, numerosStr, nombre, metodoPagoActual) {
       const metodoPago = prompt(
-        `💰 Marcar número ${numero} como PAGADO\n\n` +
+        `💰 Marcar boleta (${numerosStr}) como PAGADO\n\n` +
         `Cliente: ${nombre || 'Sin nombre'}\n\n` +
         `Selecciona método de pago:\n` +
         `1 - Efectivo\n` +
@@ -554,44 +555,23 @@
       if (metodoPago === '2') metodoPagoFinal = 'nequi';
       if (metodoPago === '3') metodoPagoFinal = 'daviplata';
 
-      if (confirm(`¿Confirmas que el número ${numero} ha sido PAGADO?\n\nCliente: ${nombre || 'Sin nombre'}\nMétodo: ${metodoPagoFinal}\n\n✅ Se cambiará a estado PAGADO`)) {
+      if (confirm(`¿Confirmas que la boleta ${numerosStr} ha sido PAGADA?\n\nCliente: ${nombre || 'Sin nombre'}\nMétodo: ${metodoPagoFinal}\n\n✅ Se cambiará a estado PAGADO`)) {
         try {
-          await db.collection('numeros').doc(docId).update({
+          await db.collection('tickets').doc(docId).update({
             estado: 'pagado',
             metodo_pago: metodoPagoFinal,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
           });
           
-          const compradoresSnapshot = await db.collection('compradores')
-            .where('numeros', 'array-contains', numero)
-            .get();
-          
-          let compradoresActualizados = 0;
-          const batch = db.batch();
-          
-          compradoresSnapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.numeros && data.numeros.includes(numero)) {
-              batch.update(doc.ref, {
-                estado: 'pagado',
-                metodo_pago: metodoPagoFinal,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-              });
-              compradoresActualizados++;
-            }
-          });
-          
-          if (compradoresActualizados > 0) await batch.commit();
-          
-          const numeroIndex = todosLosNumeros.findIndex(n => n.id === docId);
-          if (numeroIndex !== -1) {
-            todosLosNumeros[numeroIndex].estado = 'pagado';
-            todosLosNumeros[numeroIndex].metodo_pago = metodoPagoFinal;
-            todosLosNumeros[numeroIndex].fecha = new Date().toLocaleString();
+          const ticketIndex = todosLosTickets.findIndex(t => t.id === docId);
+          if (ticketIndex !== -1) {
+            todosLosTickets[ticketIndex].estado = 'pagado';
+            todosLosTickets[ticketIndex].metodo_pago = metodoPagoFinal;
+            todosLosTickets[ticketIndex].fecha = new Date().toLocaleString();
           }
           
           actualizarEstadisticas();
-          alert(`✅ Número ${numero} marcado como PAGADO\n💳 Método: ${metodoPagoFinal}`);
+          alert(`✅ Boleta ${numerosStr} marcada como PAGADO\n💳 Método: ${metodoPagoFinal}`);
           mostrarLista();
           
         } catch (error) {
@@ -601,34 +581,17 @@
       }
     }
 
-    // Reactivar número
-    async function reactivarNumero(docId, numero, nombre) {
-      if (confirm(`¿Estás segura de reactivar el número ${numero}?\n\nCliente: ${nombre || 'Sin nombre'}\n\n✅ Se eliminará de "numeros" y "compradores"\n✅ Volverá a estar DISPONIBLE en la rifa`)) {
+    // Reactivar ticket (eliminar)
+    async function reactivarTicket(docId, numerosStr, nombre) {
+      if (confirm(`¿Estás segura de reactivar la boleta ${numerosStr}?\n\nCliente: ${nombre || 'Sin nombre'}\n\n✅ Se eliminará de la rifa y los números quedarán disponibles.`)) {
         try {
-          await db.collection('numeros').doc(docId).delete();
+          await db.collection('tickets').doc(docId).delete();
           
-          const compradoresSnapshot = await db.collection('compradores')
-            .where('numeros', 'array-contains', numero)
-            .get();
-          
-          let compradoresEliminados = 0;
-          const batch = db.batch();
-          
-          compradoresSnapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.numeros && data.numeros.includes(numero)) {
-              batch.delete(doc.ref);
-              compradoresEliminados++;
-            }
-          });
-          
-          if (compradoresEliminados > 0) await batch.commit();
-          
-          const index = todosLosNumeros.findIndex(n => n.id === docId);
-          if (index !== -1) todosLosNumeros.splice(index, 1);
+          const index = todosLosTickets.findIndex(t => t.id === docId);
+          if (index !== -1) todosLosTickets.splice(index, 1);
           
           actualizarEstadisticas();
-          alert(`✅ Número ${numero} reactivado correctamente`);
+          alert(`✅ Boleta ${numerosStr} reactivada correctamente.`);
           mostrarLista();
           
         } catch (error) {
