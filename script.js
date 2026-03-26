@@ -1,4 +1,4 @@
-// Configuración de Firebase
+// Configuración de Firebase (misma configuración)
 const firebaseConfig = {
   apiKey: "AIzaSyCvNhHpsbjinSUFRK3HTDJCCnVFh4DVoXI",
   authDomain: "rifa-misaga.firebaseapp.com",
@@ -46,6 +46,7 @@ let currentReservationData = null;
 let numerosOcupados = [];
 let cacheTimestamp = 0;
 const CACHE_DURATION = 5 * 60 * 1000;
+const TOTAL_NUMEROS = 50; // AHORA 50 NÚMEROS
 
 // Función para mostrar notificaciones
 function showNotification(message, isSuccess) {
@@ -60,23 +61,19 @@ function showNotification(message, isSuccess) {
 const validatePhone = phone => /^[0-9]{10,15}$/.test(phone);
 const validateName = name => name.trim().length >= 5;
 
-// Función para generar los números en la interfaz
+// Función para generar los números en la interfaz (solo 00 al 49)
 function generarNumeros() {
   container.innerHTML = '';
 
-  if (!numerosOcupados || numerosOcupados.length === 0) {
-    for (let i = 0; i < 100; i++) {
-      const num = i.toString().padStart(2, '0');
-      crearElementoNumero(num, 'disponible');
-    }
-    spinner.style.display = 'none';
-    return;
-  }
+  // Crear un set de números ocupados para búsqueda rápida
+  const ocupadosMap = new Map();
+  numerosOcupados.forEach(n => {
+    ocupadosMap.set(n.numero, n);
+  });
 
-  const todosNumeros = Array.from({length: 100}, (_, i) => i.toString().padStart(2, '0'));
-  
-  todosNumeros.forEach(num => {
-    const numeroInfo = numerosOcupados.find(n => n.numero === num);
+  for (let i = 0; i < TOTAL_NUMEROS; i++) {
+    const num = i.toString().padStart(2, '0');
+    const numeroInfo = ocupadosMap.get(num);
     
     if (numeroInfo) {
       if (numeroInfo.estado === 'pagado') {
@@ -87,7 +84,7 @@ function generarNumeros() {
     } else {
       crearElementoNumero(num, 'disponible');
     }
-  });
+  }
   
   spinner.style.display = 'none';
 }
@@ -149,34 +146,31 @@ function crearElementoNumero(num, estado, textoExtra = '') {
   container.appendChild(div);
 }
 
-// FUNCIÓN NUEVA: Verificar disponibilidad en tiempo real
+// Verificar disponibilidad en tiempo real
 function verificarDisponibilidadNumero(numero) {
   return db.collection('numeros')
     .where('numero', '==', numero)
     .limit(1)
     .get()
-    .then(snapshot => {
-      return snapshot.empty; // true si está disponible, false si ya existe
-    })
+    .then(snapshot => snapshot.empty)
     .catch(error => {
       console.error('Error verificando disponibilidad:', error);
-      return false; // En caso de error, asumir que no está disponible
+      return false;
     });
 }
 
-// FUNCIÓN NUEVA: Verificar TODOS los números seleccionados antes de procesar
+// Verificar TODOS los números seleccionados
 function verificarDisponibilidadNumerosSeleccionados() {
   const verificaciones = selectedNumbers.map(num => 
     verificarDisponibilidadNumero(num).then(disponible => ({ num, disponible }))
   );
-
   return Promise.all(verificaciones).then(results => {
     const noDisponibles = results.filter(result => !result.disponible).map(result => result.num);
     return noDisponibles;
   });
 }
 
-// Función para cargar números ocupados desde Firestore
+// Cargar números ocupados desde Firestore (solo dentro del rango 00-49)
 function cargarNumerosOcupados() {
   const now = Date.now();
 
@@ -189,7 +183,7 @@ function cargarNumerosOcupados() {
   spinner.style.display = 'block';
 
   db.collection('numeros').get().then(snapshot => {
-    numerosOcupados = snapshot.docs.map(doc => {
+    const ocupados = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
         numero: data.numero,
@@ -198,6 +192,11 @@ function cargarNumerosOcupados() {
         nombre: data.nombre,
         telefono: data.telefono
       };
+    });
+    // Filtrar solo números dentro del rango 00-49
+    numerosOcupados = ocupados.filter(item => {
+      const numInt = parseInt(item.numero, 10);
+      return numInt >= 0 && numInt < TOTAL_NUMEROS;
     });
     
     cacheTimestamp = Date.now();
@@ -214,11 +213,13 @@ function cargarNumerosOcupados() {
     const cache = localStorage.getItem('cacheRifa');
     if (cache) {
       const data = JSON.parse(cache);
-      numerosOcupados = data.numerosOcupados || [];
+      numerosOcupados = (data.numerosOcupados || []).filter(item => {
+        const numInt = parseInt(item.numero, 10);
+        return numInt >= 0 && numInt < TOTAL_NUMEROS;
+      });
       cacheTimestamp = data.timestamp || 0;
       showNotification('Error al conectar. Usando datos locales.', false);
     } else {
-      showNotification('Error al cargar números. Intenta recargar.', false);
       numerosOcupados = [];
     }
 
@@ -230,7 +231,6 @@ function cargarNumerosOcupados() {
 function mostrarModalConfirmacionPago() {
   resetModales();
   modalConfirmacionPago.style.display = 'block';
-  console.log("Modal de confirmación mostrado");
 }
 
 // Resetear modales
@@ -246,19 +246,16 @@ function resetModales() {
   infoNequi.style.display = 'none';
 }
 
-// INICIALIZAR EVENT LISTENERS PARA OPCIONES
+// INICIALIZAR EVENT LISTENERS
 function inicializarEventListeners() {
   console.log("Inicializando event listeners...");
   
-  // Manejar envío del formulario
   form.addEventListener('submit', function(e) {
     e.preventDefault();
-    console.log("Formulario enviado");
     
     const nombre = document.getElementById('nombre').value.trim();
     const telefono = document.getElementById('telefono').value.trim();
     
-    // Validaciones
     if (selectedNumbers.length === 0) {
       showNotification('Por favor, selecciona al menos un número.', false);
       return;
@@ -274,14 +271,12 @@ function inicializarEventListeners() {
       return;
     }
     
-    // VERIFICAR DISPONIBILIDAD ANTES DE CONTINUAR
     showNotification('Verificando disponibilidad de números...', true);
     
     verificarDisponibilidadNumerosSeleccionados().then(numerosNoDisponibles => {
       if (numerosNoDisponibles.length > 0) {
         showNotification(`Los números ${numerosNoDisponibles.join(', ')} ya no están disponibles. Por favor selecciona otros.`, false);
         
-        // Actualizar la interfaz
         numerosNoDisponibles.forEach(num => {
           const div = document.querySelector(`.number[data-num="${num}"]`);
           if (div) {
@@ -298,62 +293,46 @@ function inicializarEventListeners() {
         return;
       }
       
-      // Si todos están disponibles, continuar
       currentReservationData = {
         numero: selectedNumbers.join(', '),
         nombre: nombre,
         telefono: telefono
       };
       
-      // Mostrar modal de confirmación de pago
       mostrarModalConfirmacionPago();
     });
   });
 
-  // Seleccionar tipo de pago (Voy a pagar ahora / Pagaré después)
   opcionesConfirmacion.forEach(opcion => {
     opcion.addEventListener('click', function() {
-      console.log("Opción clickeada:", this.dataset.tipo);
       opcionesConfirmacion.forEach(o => o.classList.remove('selected'));
       this.classList.add('selected');
       selectedTipoPago = this.dataset.tipo;
-      console.log("Tipo de pago seleccionado:", selectedTipoPago);
     });
   });
 
-  // Continuar desde la confirmación de tipo de pago
   confirmarTipoPagoBtn.addEventListener('click', function() {
-    console.log("Botón continuar clickeado, tipo seleccionado:", selectedTipoPago);
-    
     if (!selectedTipoPago) {
       showNotification('Por favor, selecciona una opción de pago.', false);
       return;
     }
     
     if (selectedTipoPago === 'pago-inmediato') {
-      // Si va a pagar ahora, mostrar modal de métodos de pago
       modalConfirmacionPago.style.display = 'none';
       modalPago.style.display = 'block';
-      console.log("Mostrando modal de métodos de pago");
     } else {
-      // Si pagará después, procesar directamente como reservado
-      console.log("Procesando pago posterior");
       currentReservationData.estado = 'reservado';
       currentReservationData.metodo_pago = 'efectivo';
       guardarReservaEnFirebase();
     }
   });
 
-  // Seleccionar método de pago (solo para "Voy a pagar ahora")
   metodosPago.forEach(metodo => {
     metodo.addEventListener('click', function() {
-      console.log("Método clickeado:", this.dataset.metodo);
       metodosPago.forEach(m => m.classList.remove('selected'));
       this.classList.add('selected');
       selectedMetodo = this.dataset.metodo;
-      console.log("Método de pago seleccionado:", selectedMetodo);
       
-      // Mostrar información adicional para Nequi/DaviPlata
       if (selectedMetodo === 'nequi' || selectedMetodo === 'daviplata') {
         infoNequi.style.display = 'block';
       } else {
@@ -362,23 +341,18 @@ function inicializarEventListeners() {
     });
   });
 
-  // Confirmar reserva final
   btnConfirmar.addEventListener('click', function() {
-    console.log("Confirmar pago clickeado, método seleccionado:", selectedMetodo);
-    
     if (!selectedMetodo) {
       showNotification('Por favor, selecciona un método de pago.', false);
       return;
     }
     
-    // VERIFICAR DISPONIBILIDAD UNA VEZ MÁS ANTES DE CONFIRMAR
     showNotification('Verificando última disponibilidad...', true);
     
     verificarDisponibilidadNumerosSeleccionados().then(numerosNoDisponibles => {
       if (numerosNoDisponibles.length > 0) {
         showNotification(`Los números ${numerosNoDisponibles.join(', ')} ya no están disponibles. Por favor selecciona otros.`, false);
         
-        // Actualizar la interfaz
         numerosNoDisponibles.forEach(num => {
           const div = document.querySelector(`.number[data-num="${num}"]`);
           if (div) {
@@ -395,43 +369,26 @@ function inicializarEventListeners() {
         return;
       }
       
-      // Si todos están disponibles, proceder con el pago
       currentReservationData.estado = 'pagado';
       currentReservationData.metodo_pago = selectedMetodo;
-      console.log("Procesando pago inmediato con método:", selectedMetodo);
       guardarReservaEnFirebase();
     });
   });
 
-  // Cerrar modales
-  closeConfirmacion.addEventListener('click', function() {
-    resetModales();
-  });
-
-  closePago.addEventListener('click', function() {
-    resetModales();
-  });
-
-  // Cerrar modales al hacer click fuera
+  closeConfirmacion.addEventListener('click', resetModales);
+  closePago.addEventListener('click', resetModales);
   window.addEventListener('click', function(event) {
-    if (event.target === modalConfirmacionPago) {
-      resetModales();
-    }
-    if (event.target === modalPago) {
-      resetModales();
-    }
+    if (event.target === modalConfirmacionPago) resetModales();
+    if (event.target === modalPago) resetModales();
   });
 }
 
-// Función para guardar en Firebase
+// Guardar en Firebase
 function guardarReservaEnFirebase() {
-  console.log("Iniciando guardado en Firebase...");
-  
   submitBtn.disabled = true;
   submitText.textContent = 'Procesando...';
   submitSpinner.style.display = 'inline-block';
 
-  // VERIFICACIÓN FINAL - MÁS ROBUSTA
   const verificaciones = selectedNumbers.map(num => 
     db.collection('numeros')
       .where('numero', '==', num)
@@ -442,9 +399,7 @@ function guardarReservaEnFirebase() {
 
   Promise.all(verificaciones)
     .then(results => {
-      const ocupadosRecien = results
-        .filter(result => !result.disponible)
-        .map(result => result.num);
+      const ocupadosRecien = results.filter(result => !result.disponible).map(result => result.num);
 
       if (ocupadosRecien.length > 0) {
         showNotification(`Los números ${ocupadosRecien.join(', ')} ya están ocupados. Por favor selecciona otros.`, false);
@@ -463,11 +418,9 @@ function guardarReservaEnFirebase() {
         throw new Error('Números ocupados');
       }
 
-      // Guardar en Firebase
       const batch = db.batch();
       const timestamp = firebase.firestore.FieldValue.serverTimestamp();
 
-      // Guardar cada número individualmente
       selectedNumbers.forEach(num => {
         const numRef = db.collection('numeros').doc();
         batch.set(numRef, {
@@ -480,7 +433,6 @@ function guardarReservaEnFirebase() {
         });
       });
 
-      // Guardar en compradores para tener un registro completo
       const compradorRef = db.collection('compradores').doc();
       batch.set(compradorRef, {
         nombre: currentReservationData.nombre,
@@ -494,19 +446,11 @@ function guardarReservaEnFirebase() {
       return batch.commit();
     })
     .then(() => {
-      console.log("Reserva guardada exitosamente en Firebase");
-      
-      let mensaje = '';
-      
-      if (currentReservationData.estado === 'pagado') {
-        mensaje = '¡Pago confirmado! Gracias por tu apoyo. 🎉';
-      } else {
-        mensaje = '¡Reserva exitosa! Recuerda realizar tu pago en efectivo. 💵';
-      }
-      
+      const mensaje = currentReservationData.estado === 'pagado'
+        ? '¡Pago confirmado! Gracias por tu apoyo. 🎉'
+        : '¡Reserva exitosa! Recuerda realizar tu pago en efectivo. 💵';
       showNotification(mensaje, true);
       
-      // Actualizar UI
       selectedNumbers.forEach(num => {
         const div = document.querySelector(`.number[data-num="${num}"]`);
         if (div) {
@@ -523,7 +467,6 @@ function guardarReservaEnFirebase() {
         }
       });
       
-      // Actualizar caché local
       selectedNumbers.forEach(num => {
         numerosOcupados.push({
           numero: num,
@@ -539,58 +482,42 @@ function guardarReservaEnFirebase() {
         timestamp: Date.now()
       }));
       
-      // Resetear todo
       selectedNumbers = [];
       inputNumero.value = '';
       totalPago.innerHTML = `<strong>Total a pagar:</strong> $0`;
       form.reset();
       resetModales();
-      
     })
     .catch(error => {
       console.error('Error al procesar la reserva:', error);
-      if (error.message === 'Números ocupados') {
-        // Ya se manejó arriba
-      } else if (error.code === 'resource-exhausted') {
-        showNotification('Límite de operaciones excedido. Intenta con menos números.', false);
-      } else if (error.code === 'unavailable') {
-        showNotification('Error de conexión. Verifica tu internet.', false);
-      } else {
+      if (error.message !== 'Números ocupados') {
         showNotification('Error al procesar la reserva: ' + error.message, false);
       }
     })
     .finally(() => {
       submitBtn.disabled = false;
-      submitText.textContent = '🎄 Reservar números';
+      submitText.textContent = '🎟️ Reservar números';
       submitSpinner.style.display = 'none';
     });
 }
 
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM cargado, inicializando aplicación...");
-  
-  // Inicializar todos los event listeners
   inicializarEventListeners();
   
-  // Cargar desde caché local al inicio
   const cache = localStorage.getItem('cacheRifa');
   if (cache) {
     const data = JSON.parse(cache);
-    numerosOcupados = data.numerosOcupados || [];
+    numerosOcupados = (data.numerosOcupados || []).filter(item => {
+      const numInt = parseInt(item.numero, 10);
+      return numInt >= 0 && numInt < TOTAL_NUMEROS;
+    });
     cacheTimestamp = data.timestamp || 0;
     generarNumeros();
   }
 
-  // Cargar datos actualizados de Firestore
   cargarNumerosOcupados();
   
-  // Detectar si es un dispositivo móvil
   const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  if (esMovil) {
-    document.body.classList.add('es-movil');
-  }
-  
-  console.log("Aplicación inicializada correctamente");
+  if (esMovil) document.body.classList.add('es-movil');
 });
